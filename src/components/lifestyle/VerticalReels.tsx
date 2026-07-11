@@ -1,12 +1,13 @@
 'use client';
 
 import InkReveal from '@/components/ui/ink-reveal';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
 export default function VerticalReels() {
   const reels = ['/reel.mp4', '/reel-1.mp4', '/reel-2.mp4', '/reel-3.mp4'];
   const sectionRef = useRef<HTMLElement>(null);
+  const textRef = useRef<HTMLDivElement>(null);
 
   // ── DEBUG FORENSE ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -33,6 +34,21 @@ export default function VerticalReels() {
     };
   }, []);
   // ── FIN DEBUG ──────────────────────────────────────────────────────────────
+
+  // ── PARALLAX DEL TEXTO ────────────────────────────────────────────────────
+  // useScroll sobre la sección completa para que el texto se mueva
+  // visiblemente mientras el usuario scrollea a través de los reels.
+  // El texto se desplaza hacia arriba (-200px) a medida que la sección
+  // pasa por el viewport — esto crea el efecto de "acompañar el scroll".
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  });
+
+  // En desktop: el texto sube 200px mientras la sección scrollea
+  // En mobile: sin transformación (el texto fluye normalmente)
+  const textY = useTransform(scrollYProgress, [0, 1], [100, -200]);
+  // ── FIN PARALLAX ──────────────────────────────────────────────────────────
 
   return (
     /*
@@ -69,62 +85,101 @@ export default function VerticalReels() {
       {/*
        * CONTENEDOR DE CONTENIDO
        *
-       * ARQUITECTURA:
-       * — Mobile (base): flex-col. El texto (order-1) aparece arriba con
-       *   sticky top-0 para que quede fijo mientras el usuario scrollea los
-       *   videos (order-2) debajo.
+       * ARQUITECTURA DEFINITIVA:
+       * — Mobile (base): flex-col. El texto (order-1) aparece arriba y fluye
+       *   naturalmente. Los reels (order-2) aparecen debajo.
        *
        * — Desktop (md+): CSS Grid de 2 columnas [40% | 1fr].
-       *   El texto ocupa la columna izquierda (col-start-1) y los reels la
-       *   derecha (col-start-2). Ambas columnas comparten la misma fila del
-       *   grid, por lo que la altura de la fila la dictan los reels.
-       *   El texto NO tiene sticky ni fixed — es un elemento normal en el
-       *   flujo del grid. Al hacer scroll, el texto sube y baja junto con
-       *   toda la sección de forma completamente orgánica.
-       *   El padding vertical (py-32) centra visualmente el texto dentro
-       *   de la columna sin necesidad de posicionamiento especial.
+       *   El texto ocupa la columna izquierda con un parallax de Framer Motion
+       *   (useScroll + useTransform) que lo hace moverse visiblemente mientras
+       *   el usuario scrollea. Los reels ocupan la columna derecha.
+       *
+       * DIAGNÓSTICO FINAL DEL PROBLEMA:
+       * El texto era demasiado corto (~300px) comparado con la sección
+       * (~3000px). Aunque se movía con el scroll, el movimiento era tan
+       * pequeño que era imperceptible. La solución es usar un parallax
+       * explícito con useTransform para que el texto se desplace
+       * visiblemente (100px → -200px) durante el recorrido de la sección.
        */}
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:grid md:grid-cols-[40%_1fr] md:items-start px-4 md:px-10">
 
         {/*
          * TEXTO — Mobile: order-1 (arriba), flujo normal
-         *         Desktop: col-start-1, self-start para que NO se estire
-         *         al alto de la fila del grid (que lo haría parecer fijo).
-         *         Con self-start el bloque solo ocupa su altura natural y
-         *         se desplaza con el scroll de la página.
+         *         Desktop: col-start-1, con parallax vertical via motion.div
          */}
-        <div className="relative w-full py-16
-                        md:col-start-1 md:row-start-1 md:py-32 md:self-start
-                        flex flex-col justify-start md:justify-center md:pr-10
-                        order-1 pointer-events-none">
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            className="text-[#cda434] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 md:mb-4 font-semibold drop-shadow-md"
+        <div
+          ref={textRef}
+          className="relative w-full py-16
+                      md:col-start-1 md:row-start-1 md:py-32 md:self-start
+                      flex flex-col justify-start md:justify-center md:pr-10
+                      order-1 pointer-events-none"
+        >
+          {/* Wrapper de parallax — solo activo en desktop */}
+          <motion.div
+            style={{ y: textY }}
+            className="hidden md:flex flex-col"
           >
-            Lifestyle Exclusivo
-          </motion.h2>
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              className="text-[#cda434] uppercase tracking-[0.2em] text-sm mb-4 font-semibold drop-shadow-md"
+            >
+              Lifestyle Exclusivo
+            </motion.h2>
 
-          <motion.h3
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl md:text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
-          >
-            ¿Te gustaría vivir en el paraíso?
-          </motion.h3>
+            <motion.h3
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
+            >
+              ¿Te gustaría vivir en el paraíso?
+            </motion.h3>
 
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ delay: 0.2 }}
-            className="text-white/60 mt-4 md:mt-6 text-sm md:text-base lg:text-lg max-w-md font-light leading-relaxed"
-          >
-            Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
-          </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ delay: 0.2 }}
+              className="text-white/60 mt-6 text-base lg:text-lg max-w-md font-light leading-relaxed"
+            >
+              Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
+            </motion.p>
+          </motion.div>
+
+          {/* Mobile: sin parallax, flujo normal */}
+          <div className="flex flex-col md:hidden">
+            <motion.h2
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              className="text-[#cda434] uppercase tracking-[0.2em] text-xs mb-3 font-semibold drop-shadow-md"
+            >
+              Lifestyle Exclusivo
+            </motion.h2>
+
+            <motion.h3
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ delay: 0.1 }}
+              className="text-3xl text-white font-serif leading-tight drop-shadow-2xl"
+            >
+              ¿Te gustaría vivir en el paraíso?
+            </motion.h3>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ delay: 0.2 }}
+              className="text-white/60 mt-4 text-sm max-w-md font-light leading-relaxed"
+            >
+              Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
+            </motion.p>
+          </div>
         </div>
 
         {/*
