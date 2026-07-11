@@ -2,27 +2,55 @@
 
 import InkReveal from '@/components/ui/ink-reveal';
 import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
 
 export default function VerticalReels() {
   const reels = ['/reel.mp4', '/reel-1.mp4', '/reel-2.mp4', '/reel-3.mp4'];
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // ── DEBUG FORENSE ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    const logHeights = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      const sectionH = section.offsetHeight;
+      const winH = window.innerHeight;
+      console.log('[VerticalReels DEBUG]', {
+        'section.offsetHeight': sectionH,
+        'window.innerHeight': winH,
+        'sección > ventana?': sectionH > winH,
+        'ratio sección/ventana': (sectionH / winH).toFixed(2) + 'x',
+      });
+    };
+
+    // Log inmediato al montar
+    logHeights();
+
+    // Log en cada scroll para ver si cambia
+    window.addEventListener('scroll', logHeights, { passive: true });
+    window.addEventListener('resize', logHeights);
+
+    return () => {
+      window.removeEventListener('scroll', logHeights);
+      window.removeEventListener('resize', logHeights);
+    };
+  }, []);
+  // ── FIN DEBUG ──────────────────────────────────────────────────────────────
 
   return (
     /*
-     * CONTENEDOR PRINCIPAL
-     * - relative: necesario para que absolute children se posicionen aquí
-     * - w-full: ancho completo
-     * - min-h-screen h-auto: crece según el contenido (los reels dictan la altura)
-     * - bg-black: fondo base
-     * - cursor-crosshair: estilo visual
-     * - SIN overflow-hidden: crítico para que sticky funcione
+     * CONTENEDOR PRINCIPAL — borde rojo para debug visual
+     * relative w-full min-h-screen h-auto bg-black cursor-crosshair
+     * SIN overflow-hidden
      */
-    <section className="relative w-full min-h-screen h-auto bg-black cursor-crosshair">
+    <section
+      ref={sectionRef}
+      className="relative w-full min-h-screen h-auto bg-black cursor-crosshair border-4 border-red-500"
+    >
 
       {/*
-       * CAPA DE FONDO — absolute inset-0 h-full w-full
-       * Al ser absolute con h-full, se estira exactamente hasta donde llegue
-       * el contenido del <section> padre (que es h-auto).
-       * El sticky interno mantiene el efecto visual mientras se hace scroll.
+       * CAPA DE FONDO — absolute inset-0 h-full w-full z-0
+       * Se estira exactamente hasta donde llegue el contenido del <section>
        */}
       <div className="absolute inset-0 h-full w-full z-0 pointer-events-none">
         <div className="sticky top-0 w-full h-screen">
@@ -43,20 +71,17 @@ export default function VerticalReels() {
       </div>
 
       {/*
-       * CONTENEDOR DE CONTENIDO
-       * - relative z-10: sobre el fondo
-       * - flex: layout horizontal en desktop
-       * - max-w-7xl mx-auto px: centrado y padding
-       * - SIN overflow-hidden: crítico para sticky
+       * CONTENEDOR DE CONTENIDO — relative z-10 flex
+       * SIN overflow-hidden
        */}
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-start px-4 md:px-10">
 
         {/*
          * FLEX CHILD IZQUIERDA — Grilla de Reels
-         * - flex-1 h-auto: crece según su contenido y dicta la altura total de la sección
-         * - md:order-1: orden en desktop
+         * flex-1 h-auto — dicta la altura total de la sección
+         * borde azul para debug visual
          */}
-        <div className="flex-1 h-auto md:order-1 pointer-events-auto">
+        <div className="flex-1 h-auto md:order-1 pointer-events-auto border-4 border-blue-500">
 
           {/* Mobile: 2 columnas compactas */}
           <div className="flex md:hidden gap-3 py-10">
@@ -131,13 +156,10 @@ export default function VerticalReels() {
 
         {/*
          * FLEX CHILD DERECHA — Texto Sticky
-         * - w-full md:w-[40%]: ancho en mobile y desktop
-         * - sticky top-0 h-screen: se mantiene fijo en el viewport mientras dura el scroll de los reels
-         * - flex flex-col justify-center: centra el texto verticalmente
-         * - md:order-2: orden en desktop
-         * - pointer-events-none: no interfiere con el InkReveal
+         * sticky top-0 h-screen — se mantiene fijo en el viewport
+         * borde verde para debug visual
          */}
-        <div className="w-full md:w-[40%] py-12 md:py-0 sticky top-0 h-screen flex flex-col justify-center md:pl-16 md:order-2 pointer-events-none">
+        <div className="w-full md:w-[40%] py-12 md:py-0 sticky top-0 h-screen flex flex-col justify-center md:pl-16 md:order-2 pointer-events-none border-4 border-green-500">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
