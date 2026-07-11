@@ -84,14 +84,17 @@ export default function VerticalReels() {
        *   El padding vertical (py-32) centra visualmente el texto dentro
        *   de la columna sin necesidad de posicionamiento especial.
        */}
-      <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:grid md:grid-cols-[40%_1fr] items-start px-4 md:px-10">
+      <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:grid md:grid-cols-[40%_1fr] md:items-start px-4 md:px-10">
 
         {/*
-         * TEXTO — Mobile: order-1 (arriba), sticky top-0
-         *         Desktop: col-start-1, flujo normal del grid
+         * TEXTO — Mobile: order-1 (arriba), flujo normal
+         *         Desktop: col-start-1, self-start para que NO se estire
+         *         al alto de la fila del grid (que lo haría parecer fijo).
+         *         Con self-start el bloque solo ocupa su altura natural y
+         *         se desplaza con el scroll de la página.
          */}
         <div className="relative w-full py-16
-                        md:col-start-1 md:row-start-1 md:py-32
+                        md:col-start-1 md:row-start-1 md:py-32 md:self-start
                         flex flex-col justify-start md:justify-center md:pr-10
                         order-1 pointer-events-none">
           <motion.h2
