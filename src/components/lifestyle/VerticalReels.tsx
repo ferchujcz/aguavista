@@ -50,7 +50,7 @@ export default function VerticalReels() {
   // y termina fuera del viewport por abajo.
   // El rango de desplazamiento es grande para que el texto viaje
   // desde el inicio hasta el final de la sección de reels.
-  const textY = useTransform(scrollYProgress, [0, 1], [-200, 1400]);
+  const textY = useTransform(scrollYProgress, [0, 1], [-200, 1350]);
   // ── FIN PARALLAX ──────────────────────────────────────────────────────────
 
   return (
