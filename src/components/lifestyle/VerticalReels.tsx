@@ -23,10 +23,7 @@ export default function VerticalReels() {
       });
     };
 
-    // Log inmediato al montar
     logHeights();
-
-    // Log en cada scroll para ver si cambia
     window.addEventListener('scroll', logHeights, { passive: true });
     window.addEventListener('resize', logHeights);
 
@@ -39,8 +36,8 @@ export default function VerticalReels() {
 
   return (
     /*
-     * CONTENEDOR PRINCIPAL — borde rojo para debug visual
-     * relative w-full min-h-screen h-auto bg-black cursor-crosshair
+     * CONTENEDOR PRINCIPAL
+     * relative w-full min-h-screen h-auto bg-black
      * SIN overflow-hidden
      */
     <section
@@ -51,7 +48,7 @@ export default function VerticalReels() {
       {/*
        * CAPA DE FONDO — absolute inset-0 h-full w-full z-0
        * Se estira exactamente hasta donde llegue el contenido del <section>
-       * SIN sticky ni h-screen — el padre h-auto ya define la altura total
+       * SIN sticky ni h-screen
        */}
       <div className="absolute inset-0 h-full w-full z-0 pointer-events-none">
         <img
@@ -70,17 +67,68 @@ export default function VerticalReels() {
       </div>
 
       {/*
-       * CONTENEDOR DE CONTENIDO — relative z-10 flex
-       * SIN overflow-hidden
+       * CONTENEDOR DE CONTENIDO
+       *
+       * ARQUITECTURA:
+       * — Mobile (base): flex-col. El texto (order-1) aparece arriba con
+       *   sticky top-0 para que quede fijo mientras el usuario scrollea los
+       *   videos (order-2) debajo.
+       *
+       * — Desktop (md+): CSS Grid de 2 columnas [40% | 1fr].
+       *   El texto ocupa la columna izquierda (col-start-1) y los reels la
+       *   derecha (col-start-2). Ambas columnas comparten la misma fila del
+       *   grid, por lo que la altura de la fila la dictan los reels.
+       *   El texto NO tiene sticky ni fixed — es un elemento normal en el
+       *   flujo del grid. Al hacer scroll, el texto sube y baja junto con
+       *   toda la sección de forma completamente orgánica.
+       *   El padding vertical (py-32) centra visualmente el texto dentro
+       *   de la columna sin necesidad de posicionamiento especial.
        */}
-      <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:flex-row items-start px-4 md:px-10">
+      <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:grid md:grid-cols-[40%_1fr] items-start px-4 md:px-10">
 
         {/*
-         * FLEX CHILD IZQUIERDA — Grilla de Reels
-         * flex-1 h-auto — dicta la altura total de la sección
-         * borde azul para debug visual
+         * TEXTO — Mobile: order-1 (arriba), sticky top-0
+         *         Desktop: col-start-1, flujo normal del grid
          */}
-        <div className="flex-1 h-auto md:order-1 pointer-events-auto">
+        <div className="sticky top-0 z-20 w-full py-16
+                        md:col-start-1 md:row-start-1 md:relative md:z-auto md:py-32
+                        flex flex-col justify-start md:justify-center md:pr-10
+                        order-1 pointer-events-none">
+          <motion.h2
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            className="text-[#cda434] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 md:mb-4 font-semibold drop-shadow-md"
+          >
+            Lifestyle Exclusivo
+          </motion.h2>
+
+          <motion.h3
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl md:text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
+          >
+            ¿Te gustaría vivir en el paraíso?
+          </motion.h3>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-50px' }}
+            transition={{ delay: 0.2 }}
+            className="text-white/60 mt-4 md:mt-6 text-sm md:text-base lg:text-lg max-w-md font-light leading-relaxed"
+          >
+            Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
+          </motion.p>
+        </div>
+
+        {/*
+         * REELS — Mobile: order-2 (debajo del texto)
+         *         Desktop: col-start-2, dicta la altura total de la fila del grid
+         */}
+        <div className="w-full h-auto md:col-start-2 md:row-start-1 pointer-events-auto order-2">
 
           {/* Mobile: 2 columnas compactas */}
           <div className="flex md:hidden gap-3 py-10">
@@ -151,57 +199,6 @@ export default function VerticalReels() {
             </div>
           </div>
 
-        </div>
-
-        {/*
-         * FLEX CHILD DERECHA — Texto
-         *
-         * DIAGNÓSTICO FINAL:
-         * El culpable del "congelamiento" en desktop era `h-screen` sin prefijo
-         * md:. Aunque `md:h-auto` lo sobreescribía en teoría, en un flex-col
-         * (mobile) el sticky + h-screen hacía que el bloque ocupara toda la
-         * pantalla y "empujara" los reels fuera del viewport, rompiendo el
-         * flujo. En desktop (flex-row) el h-screen forzaba al texto a tener
-         * altura fija, impidiendo que fluyera con el documento.
-         *
-         * SOLUCIÓN LIMPIA:
-         * — Mobile (base): `sticky top-0 z-20` + altura automática (py-16
-         *   para dar espacio visual). Sin h-screen — el bloque solo ocupa
-         *   lo que necesita el texto. `order-first` lo coloca arriba de los
-         *   reels en el flujo flex-col para que el sticky tenga contexto.
-         * — Desktop (md+): `md:static md:h-auto md:z-auto` — elimina sticky,
-         *   h-screen y z-index. El texto es un elemento estático que fluye
-         *   orgánicamente con el documento al hacer scroll.
-         */}
-        <div className="sticky top-0 z-20 w-full md:w-[40%] py-16 md:py-0 md:static md:h-auto md:z-auto flex flex-col justify-center md:pl-16 order-first md:order-2 pointer-events-none">
-          <motion.h2
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            className="text-[#cda434] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 md:mb-4 font-semibold drop-shadow-md"
-          >
-            Lifestyle Exclusivo
-          </motion.h2>
-
-          <motion.h3
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl md:text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
-          >
-            ¿Te gustaría vivir en el paraíso?
-          </motion.h3>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-50px' }}
-            transition={{ delay: 0.2 }}
-            className="text-white/60 mt-4 md:mt-6 text-sm md:text-base lg:text-lg max-w-md font-light leading-relaxed"
-          >
-            Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
-          </motion.p>
         </div>
 
       </div>
