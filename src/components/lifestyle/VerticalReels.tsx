@@ -7,11 +7,11 @@ export default function VerticalReels() {
   const reels = ['/reel.mp4', '/reel-1.mp4', '/reel-2.mp4', '/reel-3.mp4'];
 
   return (
-    <section className="relative w-full bg-black cursor-crosshair">
+    <section className="relative w-full min-h-screen bg-black cursor-crosshair overflow-x-hidden">
       
-      {/* Capa de Fondo — absolute + sticky interno para cubrir toda la sección */}
+      {/* Capa de Fondo — absolute inset-0 h-full para cubrir toda la sección */}
       {/* IMPORTANTE: NO overflow-hidden aquí para que sticky funcione */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="absolute inset-0 h-full z-0 pointer-events-none">
         <div className="sticky top-0 w-full h-screen">
           <img
             src="/foto-9.jpg"
