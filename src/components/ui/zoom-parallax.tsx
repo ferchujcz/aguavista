@@ -23,7 +23,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 	const bgClipPath = useTransform(scrollYProgress, [0, 0.7], ['inset(0% 25% 0% 25%)', 'inset(0% 0% 0% 0%)']);
 
 	return (
-		<div ref={container} className="relative w-full min-h-screen bg-black py-32 px-4 md:px-10 overflow-hidden">
+		<div ref={container} className="relative w-full min-h-screen bg-black py-16 md:py-32 px-4 md:px-10 overflow-hidden">
 			{/* Fondo dinámico expansivo (Optimizado para GPU) */}
 			<motion.div 
 				style={{ 
@@ -33,12 +33,12 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 				}}
 				className="absolute inset-0 z-0 transform-gpu"
 			>
-			<img 
-				src="/foto-8.jpg" 
-				alt="Fondo AguaVista" 
-				decoding="async"
-				loading="lazy"
-				className="absolute inset-0 w-full h-full object-cover" 
+				<img 
+					src="/foto-8.jpg" 
+					alt="Fondo AguaVista" 
+					decoding="async"
+					loading="lazy"
+					className="absolute inset-0 w-full h-full object-cover object-center" 
 					onError={(e) => {
 						(e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1280';
 					}}
@@ -47,7 +47,32 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 			</motion.div>
 
 			<Floating sensitivity={1.5} className="relative z-10 w-full h-full">
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-10 w-full max-w-7xl mx-auto">
+				{/* Mobile: single column stacked layout */}
+				<div className="flex flex-col gap-6 md:hidden w-full max-w-lg mx-auto">
+					{images[0] && (
+						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+							<ShutterImageLoader src={images[0].src} alt={images[0].alt} direction="ttb" />
+						</div>
+					)}
+					{images[2] && (
+						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+							<ShutterImageLoader src={images[2].src} alt={images[2].alt} direction="ttb" />
+						</div>
+					)}
+					{images[4] && (
+						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+							<ShutterImageLoader src={images[4].src} alt={images[4].alt} direction="ttb" />
+						</div>
+					)}
+					{images[6] && (
+						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
+							<ShutterImageLoader src={images[6].src} alt={images[6].alt} direction="ttb" />
+						</div>
+					)}
+				</div>
+
+				{/* Desktop: 3-column staggered layout */}
+				<div className="hidden md:grid grid-cols-3 gap-10 w-full max-w-7xl mx-auto">
 					
 					{/* Columna Izquierda */}
 					<motion.div style={{ y: y1 }} className="flex flex-col gap-10 pt-20">

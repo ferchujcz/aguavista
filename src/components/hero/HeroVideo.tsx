@@ -54,7 +54,7 @@ export default function HeroVideo({
       ref={containerRef}
       aria-label="Hero — Residencias de Ultra Lujo"
       className={cn(
-        "relative w-full h-screen min-h-[600px] overflow-hidden flex items-end",
+        "relative w-full h-screen min-h-[500px] overflow-hidden flex items-end",
         className
       )}
     >
@@ -169,17 +169,17 @@ export default function HeroVideo({
             initial={{ y: "100%" }}
             animate={{ y: "0%" }}
             transition={{ duration: 1, delay: 0.75, ease: [0.16, 1, 0.3, 1] }}
-            className="font-[family-name:var(--font-cormorant)] text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-light leading-[0.9] tracking-tight text-[#FAFAF9]"
+            className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-light leading-[0.9] tracking-tight text-[#FAFAF9]"
           >
             {headlineTop}
           </motion.h1>
         </div>
-        <div className="overflow-hidden mb-8">
+        <div className="overflow-hidden mb-6 md:mb-8">
           <motion.h1
             initial={{ y: "100%" }}
             animate={{ y: "0%" }}
             transition={{ duration: 1, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
-            className="font-[family-name:var(--font-cormorant)] text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-light leading-[0.9] tracking-tight text-[#FAFAF9] italic"
+            className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-light leading-[0.9] tracking-tight text-[#FAFAF9] italic"
           >
             {headlineBottom}
           </motion.h1>

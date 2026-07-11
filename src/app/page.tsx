@@ -32,7 +32,7 @@ export default function Home() {
   return (
     <Preloader images={CRITICAL_IMAGES}>
       <SmoothScrollProvider>
-        <main className="flex flex-col w-full bg-[#0C0A09]">
+        <main className="flex flex-col w-full bg-[#0C0A09] overflow-x-hidden">
           {/* ── 1. Hero ── */}
           <HeroVideo />
 
