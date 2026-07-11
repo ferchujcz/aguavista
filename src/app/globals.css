@@ -45,7 +45,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   /* Prevent iOS bounce scroll from causing layout issues */
-  overscroll-behavior-y: none;
+  /* overscroll-behavior-y: none; */
 }
 
 /* Ensure touch scrolling is smooth on iOS */
