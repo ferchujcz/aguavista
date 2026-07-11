@@ -156,24 +156,24 @@ export default function VerticalReels() {
         {/*
          * FLEX CHILD DERECHA — Texto
          *
-         * DIAGNÓSTICO DEFINITIVO:
-         * El texto aparece "fijo" en desktop porque en un flex-row, cuando el
-         * texto tiene menos altura que los reels, el navegador lo alinea al
-         * inicio (items-start en el padre) y visualmente parece que no se mueve
-         * aunque el scroll sí ocurre. La solución es sacar el texto del flujo
-         * flex-row en desktop y colocarlo como un bloque normal dentro de la
-         * sección, usando un layout de grid o posicionamiento absoluto.
+         * DIAGNÓSTICO FINAL:
+         * El culpable del "congelamiento" en desktop era `h-screen` sin prefijo
+         * md:. Aunque `md:h-auto` lo sobreescribía en teoría, en un flex-col
+         * (mobile) el sticky + h-screen hacía que el bloque ocupara toda la
+         * pantalla y "empujara" los reels fuera del viewport, rompiendo el
+         * flujo. En desktop (flex-row) el h-screen forzaba al texto a tener
+         * altura fija, impidiendo que fluyera con el documento.
          *
-         * NUEVA ESTRATEGIA — Desktop: el texto va ENCIMA de los reels usando
-         * absolute en desktop, centrado verticalmente en la mitad derecha.
-         * Mobile: sticky top-0 z-20 para que quede fijo mientras scrollean.
-         *
-         * NOTA: En desktop usamos md:absolute md:right-0 md:top-1/2
-         * md:-translate-y-1/2 para que el texto flote sobre los reels sin
-         * participar en el flujo flex (y por tanto sin ser afectado por la
-         * altura del flex container).
+         * SOLUCIÓN LIMPIA:
+         * — Mobile (base): `sticky top-0 z-20` + altura automática (py-16
+         *   para dar espacio visual). Sin h-screen — el bloque solo ocupa
+         *   lo que necesita el texto. `order-first` lo coloca arriba de los
+         *   reels en el flujo flex-col para que el sticky tenga contexto.
+         * — Desktop (md+): `md:static md:h-auto md:z-auto` — elimina sticky,
+         *   h-screen y z-index. El texto es un elemento estático que fluye
+         *   orgánicamente con el documento al hacer scroll.
          */}
-        <div className="sticky top-0 z-20 w-full md:w-[40%] py-16 md:py-0 md:absolute md:right-0 md:top-1/2 md:-translate-y-1/2 md:z-20 flex flex-col justify-center md:pl-16 order-first md:order-none pointer-events-none">
+        <div className="sticky top-0 z-20 w-full md:w-[40%] py-16 md:py-0 md:static md:h-auto md:z-auto flex flex-col justify-center md:pl-16 order-first md:order-2 pointer-events-none">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
