@@ -7,11 +7,12 @@ export default function VerticalReels() {
   const reels = ['/reel.mp4', '/reel-1.mp4', '/reel-2.mp4', '/reel-3.mp4'];
 
   return (
-    <section className="relative w-full bg-black cursor-crosshair overflow-x-hidden">
+    <section className="relative w-full bg-black cursor-crosshair">
       
-      {/* Capa de Fondo (Sticky para que acompañe todo el alto de la sección) */}
-      <div className="absolute inset-0 z-0">
-        <div className="sticky top-0 w-full h-screen overflow-hidden">
+      {/* Capa de Fondo — absolute + sticky interno para cubrir toda la sección */}
+      {/* IMPORTANTE: NO overflow-hidden aquí para que sticky funcione */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="sticky top-0 w-full h-screen">
           <img
             src="/foto-9.jpg"
             alt="Fondo Amenidades"
@@ -28,46 +29,14 @@ export default function VerticalReels() {
         </div>
       </div>
 
-      {/* Contenedor Principal Z-20 */}
+      {/* Contenedor Principal Z-20 — sin overflow-hidden para no romper sticky */}
       <div className="relative z-20 max-w-7xl mx-auto flex flex-col md:flex-row items-start px-4 md:px-10">
         
-        {/* Texto: En móvil va arriba, en desktop va a la derecha (sticky) */}
-        <div className="w-full md:w-[40%] pt-16 pb-8 md:py-0 md:h-screen md:sticky md:top-0 flex flex-col justify-center md:pl-0 md:pr-0 md:order-2 pointer-events-none">
-          <motion.h2 
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            className="text-[#cda434] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 md:mb-4 font-semibold drop-shadow-md"
-          >
-            Lifestyle Exclusivo
-          </motion.h2>
-          
-          <motion.h3 
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl md:text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
-          >
-            ¿Te gustaría vivir en el paraíso?
-          </motion.h3>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
-            transition={{ delay: 0.2 }}
-            className="text-white/60 mt-4 md:mt-6 text-sm md:text-base lg:text-lg max-w-md font-light leading-relaxed"
-          >
-            Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
-          </motion.p>
-        </div>
-
-        {/* Grilla de Reels */}
+        {/* Grilla de Reels — en móvil va primero, en desktop va a la izquierda */}
         <div className="w-full md:w-[60%] md:order-1 pointer-events-auto">
 
           {/* Mobile: 2 columnas compactas */}
-          <div className="flex md:hidden gap-3 py-6">
+          <div className="flex md:hidden gap-3 py-10">
             {/* Columna 1 */}
             <div className="flex flex-col gap-3 w-1/2 mt-8">
               {[reels[0], reels[2]].map((src) => (
@@ -101,7 +70,7 @@ export default function VerticalReels() {
           </div>
 
           {/* Desktop: 2 columnas desfasadas con más espacio */}
-          <div className="hidden md:flex gap-4 md:gap-8 py-32">
+          <div className="hidden md:flex gap-8 py-32">
             {/* Columna 1 de Reels (Arranca más abajo) */}
             <div className="flex flex-col gap-10 w-1/2 mt-32">
               {[reels[0], reels[2]].map((src) => (
@@ -135,6 +104,39 @@ export default function VerticalReels() {
             </div>
           </div>
 
+        </div>
+
+        {/* Texto: En móvil va debajo de los reels, en desktop es sticky a la derecha */}
+        {/* md:sticky + md:top-0 + md:h-screen = sticky solo en desktop */}
+        <div className="w-full md:w-[40%] py-12 md:py-0 md:h-screen md:sticky md:top-0 flex flex-col justify-center md:pl-16 md:order-2 pointer-events-none">
+          <motion.h2 
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            className="text-[#cda434] uppercase tracking-[0.2em] text-xs md:text-sm mb-3 md:mb-4 font-semibold drop-shadow-md"
+          >
+            Lifestyle Exclusivo
+          </motion.h2>
+          
+          <motion.h3 
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl md:text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
+          >
+            ¿Te gustaría vivir en el paraíso?
+          </motion.h3>
+
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ delay: 0.2 }}
+            className="text-white/60 mt-4 md:mt-6 text-sm md:text-base lg:text-lg max-w-md font-light leading-relaxed"
+          >
+            Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
+          </motion.p>
         </div>
 
       </div>
