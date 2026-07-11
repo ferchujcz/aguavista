@@ -90,8 +90,8 @@ export default function VerticalReels() {
          * TEXTO — Mobile: order-1 (arriba), sticky top-0
          *         Desktop: col-start-1, flujo normal del grid
          */}
-        <div className="sticky top-0 z-20 w-full py-16
-                        md:col-start-1 md:row-start-1 md:relative md:z-auto md:py-32
+        <div className="relative w-full py-16
+                        md:col-start-1 md:row-start-1 md:py-32
                         flex flex-col justify-start md:justify-center md:pr-10
                         order-1 pointer-events-none">
           <motion.h2
