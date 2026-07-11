@@ -45,9 +45,12 @@ export default function VerticalReels() {
     offset: ['start end', 'end start'],
   });
 
-  // En desktop: el texto sube 200px mientras la sección scrollea
-  // En mobile: sin transformación (el texto fluye normalmente)
-  const textY = useTransform(scrollYProgress, [0, 1], [100, -200]);
+  // En desktop: el texto recorre toda la sección de arriba a abajo.
+  // Empieza fuera del viewport por arriba (negativo = arriba de la sección)
+  // y termina fuera del viewport por abajo.
+  // El rango de desplazamiento es grande para que el texto viaje
+  // desde el inicio hasta el final de la sección de reels.
+  const textY = useTransform(scrollYProgress, [0, 1], [-300, 1200]);
   // ── FIN PARALLAX ──────────────────────────────────────────────────────────
 
   return (
