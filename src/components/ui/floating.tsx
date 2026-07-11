@@ -59,8 +59,6 @@ export default function Floating({
       ref={containerRef}
       className={className}
       style={{
-        transformStyle: "preserve-3d",
-        willChange: "transform",
         transition: "transform 0.1s linear",
       }}
     >
