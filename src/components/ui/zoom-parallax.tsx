@@ -33,11 +33,12 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 				}}
 				className="absolute inset-0 z-0 transform-gpu"
 			>
-				<img 
-					src="/foto-8.jpg" 
-					alt="Fondo AguaVista" 
-					decoding="async"
-					className="absolute inset-0 w-full h-full object-cover" 
+			<img 
+				src="/foto-8.jpg" 
+				alt="Fondo AguaVista" 
+				decoding="async"
+				loading="lazy"
+				className="absolute inset-0 w-full h-full object-cover" 
 					onError={(e) => {
 						(e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1280';
 					}}

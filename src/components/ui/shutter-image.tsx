@@ -37,6 +37,7 @@ export default function ShutterImageLoader({
     <div
       ref={containerRef}
       className={`relative w-full h-full transform-gpu ${className}`}
+      style={{ willChange: 'transform, clip-path' }}
     >
       <motion.img
         src={src}
@@ -46,7 +47,7 @@ export default function ShutterImageLoader({
         style={{ 
           clipPath, 
           willChange: 'clip-path, transform',
-          transform: 'translateZ(0)' // Fuerza a la GPU a crear una capa independiente
+          transform: 'translateZ(0)',
         }}
         className="absolute inset-0 w-full h-full object-cover"
       />
