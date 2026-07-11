@@ -45,7 +45,7 @@ export default function VerticalReels() {
      */
     <section
       ref={sectionRef}
-      className="relative w-full min-h-screen h-auto bg-black cursor-crosshair border-4 border-red-500"
+      className="relative w-full min-h-screen h-auto bg-black cursor-crosshair"
     >
 
       {/*
@@ -80,7 +80,7 @@ export default function VerticalReels() {
          * flex-1 h-auto — dicta la altura total de la sección
          * borde azul para debug visual
          */}
-        <div className="flex-1 h-auto md:order-1 pointer-events-auto border-4 border-blue-500">
+        <div className="flex-1 h-auto md:order-1 pointer-events-auto">
 
           {/* Mobile: 2 columnas compactas */}
           <div className="flex md:hidden gap-3 py-10">
@@ -154,12 +154,11 @@ export default function VerticalReels() {
         </div>
 
         {/*
-         * FLEX CHILD DERECHA — Texto Sticky
-         * En desktop: md:sticky md:top-0 md:h-screen — se mantiene fijo en el viewport
-         * En mobile: relative — se mueve naturalmente con el scroll
-         * borde verde para debug visual
+         * FLEX CHILD DERECHA — Texto
+         * En desktop (md): relative — acompaña el scroll natural de la página
+         * En mobile: sticky top-0 — queda fijo mientras el usuario scrollea los videos
          */}
-        <div className="relative w-full md:w-[40%] py-12 md:py-0 md:sticky md:top-0 md:h-screen flex flex-col justify-center md:pl-16 md:order-2 pointer-events-none border-4 border-green-500">
+        <div className="sticky top-0 h-screen w-full md:w-[40%] py-12 md:py-0 md:relative md:h-auto flex flex-col justify-center md:pl-16 md:order-2 pointer-events-none">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
