@@ -156,26 +156,24 @@ export default function VerticalReels() {
         {/*
          * FLEX CHILD DERECHA — Texto
          *
-         * ANÁLISIS DEL CONFLICTO:
-         * El problema raíz es que `sticky` en un flex child solo funciona si el
-         * contenedor padre (el flex row) tiene altura suficiente para que el
-         * elemento "se deslice". En mobile el layout es flex-col, por lo que el
-         * texto ocupa su propia fila y no hay reels al lado para crear el scroll
-         * relativo — sticky no tiene efecto real. En desktop (flex-row) sí hay
-         * altura suficiente porque los reels dictan la altura del row.
+         * DIAGNÓSTICO FINAL:
+         * El culpable del "congelamiento" en desktop era `h-screen` sin prefijo
+         * md:. Aunque `md:h-auto` lo sobreescribía en teoría, en un flex-col
+         * (mobile) el sticky + h-screen hacía que el bloque ocupara toda la
+         * pantalla y "empujara" los reels fuera del viewport, rompiendo el
+         * flujo. En desktop (flex-row) el h-screen forzaba al texto a tener
+         * altura fija, impidiendo que fluyera con el documento.
          *
-         * ESTRATEGIA:
-         * — Mobile (base): el contenedor del texto es `relative` y fluye
-         *   naturalmente. Para lograr la fijación visual en mobile usamos
-         *   `sticky top-0` SOLO en mobile, pero necesitamos que el texto esté
-         *   ANTES de los reels en el DOM (order-first) para que el sticky
-         *   funcione dentro del flex-col. Le damos z-20 para que quede sobre
-         *   la capa de fondo sin conflictos.
-         * — Desktop (md): `md:relative md:h-auto` elimina el sticky y el
-         *   h-screen. El texto fluye orgánicamente dentro del flex-row junto
-         *   a los reels, sin ninguna restricción de posición.
+         * SOLUCIÓN LIMPIA:
+         * — Mobile (base): `sticky top-0 z-20` + altura automática (py-16
+         *   para dar espacio visual). Sin h-screen — el bloque solo ocupa
+         *   lo que necesita el texto. `order-first` lo coloca arriba de los
+         *   reels en el flujo flex-col para que el sticky tenga contexto.
+         * — Desktop (md+): `md:static md:h-auto md:z-auto` — elimina sticky,
+         *   h-screen y z-index. El texto es un elemento estático que fluye
+         *   orgánicamente con el documento al hacer scroll.
          */}
-        <div className="sticky top-0 z-20 h-screen w-full md:w-[40%] py-12 md:py-0 md:relative md:h-auto md:z-auto flex flex-col justify-center md:pl-16 order-first md:order-2 pointer-events-none">
+        <div className="sticky top-0 z-20 w-full md:w-[40%] py-16 md:py-0 md:static md:h-auto md:z-auto flex flex-col justify-center md:pl-16 order-first md:order-2 pointer-events-none">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
