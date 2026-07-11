@@ -51,23 +51,22 @@ export default function VerticalReels() {
       {/*
        * CAPA DE FONDO — absolute inset-0 h-full w-full z-0
        * Se estira exactamente hasta donde llegue el contenido del <section>
+       * SIN sticky ni h-screen — el padre h-auto ya define la altura total
        */}
       <div className="absolute inset-0 h-full w-full z-0 pointer-events-none">
-        <div className="sticky top-0 w-full h-screen">
-          <img
-            src="/foto-9.jpg"
-            alt="Fondo Amenidades"
-            decoding="async"
-            loading="lazy"
-            className="absolute inset-0 w-full h-full object-cover object-center opacity-40"
-          />
-          <InkReveal
-            maskColor={[12, 12, 12]}
-            brushSize={350}
-            className="absolute inset-0 z-10"
-            style={{ pointerEvents: 'none', touchAction: 'none' }}
-          />
-        </div>
+        <img
+          src="/foto-9.jpg"
+          alt="Fondo Amenidades"
+          decoding="async"
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-40"
+        />
+        <InkReveal
+          maskColor={[12, 12, 12]}
+          brushSize={350}
+          className="absolute inset-0 z-10"
+          style={{ pointerEvents: 'none', touchAction: 'none' }}
+        />
       </div>
 
       {/*
@@ -156,10 +155,11 @@ export default function VerticalReels() {
 
         {/*
          * FLEX CHILD DERECHA — Texto Sticky
-         * sticky top-0 h-screen — se mantiene fijo en el viewport
+         * En desktop: md:sticky md:top-0 md:h-screen — se mantiene fijo en el viewport
+         * En mobile: relative — se mueve naturalmente con el scroll
          * borde verde para debug visual
          */}
-        <div className="w-full md:w-[40%] py-12 md:py-0 sticky top-0 h-screen flex flex-col justify-center md:pl-16 md:order-2 pointer-events-none border-4 border-green-500">
+        <div className="relative w-full md:w-[40%] py-12 md:py-0 md:sticky md:top-0 md:h-screen flex flex-col justify-center md:pl-16 md:order-2 pointer-events-none border-4 border-green-500">
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
