@@ -38,7 +38,7 @@ export default function VerticalReels() {
   // ── PARALLAX DEL TEXTO ────────────────────────────────────────────────────
   // useScroll sobre la sección completa para que el texto se mueva
   // visiblemente mientras el usuario scrollea a través de los reels.
-  // El texto se desplaza hacia arriba (-200px) a medida que la sección
+  // El texto se desplaza hacia arriba (-150px) a medida que la sección
   // pasa por el viewport — esto crea el efecto de "acompañar el scroll".
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -50,7 +50,7 @@ export default function VerticalReels() {
   // y termina fuera del viewport por abajo.
   // El rango de desplazamiento es grande para que el texto viaje
   // desde el inicio hasta el final de la sección de reels.
-  const textY = useTransform(scrollYProgress, [0, 1], [-200, 1350]);
+  const textY = useTransform(scrollYProgress, [0, 1], [-150, 1350]);
   // ── FIN PARALLAX ──────────────────────────────────────────────────────────
 
   return (
