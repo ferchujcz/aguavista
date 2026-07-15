@@ -52,6 +52,7 @@ export default function VerticalReels() {
   // desde el inicio hasta el final de la sección de reels.
   const textY = useTransform(scrollYProgress, [0, 1], [-150, 1350]);
   // ── FIN PARALLAX ──────────────────────────────────────────────────────────
+  // ── FIN PARALLAX ──────────────────────────────────────────────────────────
 
   return (
     /*
