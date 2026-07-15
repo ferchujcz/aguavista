@@ -33,7 +33,9 @@ export default function RootLayout({
       lang="es"
       className={`${cormorant.variable} ${josefin.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#0C0A09] text-[#FAFAF9]">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-[#0C0A09] text-[#FAFAF9]">
         {children}
       </body>
     </html>

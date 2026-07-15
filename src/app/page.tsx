@@ -4,55 +4,49 @@ import InteractiveMap from "@/components/masterplan/InteractiveMap";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import Preloader from "@/components/ui/preloader";
 import { ZoomParallax } from "@/components/ui/zoom-parallax";
+import { ZoneGallery } from "@/components/ui/zone-gallery";
+import { Navbar } from "@/components/ui/navbar";
 
 /**
  * Landing Page — Aurum Real Estate
- *
- * Architecture:
- *  1. Preloader             — Bloquea el render hasta que las imágenes críticas estén en memoria
- *  2. SmoothScrollProvider  — react-lenis wraps the entire page for Porsche-like scroll
- *  3. HeroVideo             — Full-screen cinematic hero with parallax video
- *  4. VerticalReels         — Horizontal scroll of 9:16 amenity cards (Framer Motion)
- *  5. InteractiveMap        — Masterplan with clickable lot pins + modal gallery
  */
 
+// Solo bloqueamos el render para las 2 primeras.
+// Y actualizamos todo a .webp
 const CRITICAL_IMAGES = [
-  "/foto-1.jpg",
-  "/foto-2.jpg",
-  "/foto-3.jpg",
-  "/foto-4.jpg",
-  "/foto-5.jpg",
-  "/foto-6.jpg",
-  "/foto-7.jpg",
-  "/foto-8.jpg",
-  "/foto-9.jpg",
+  "/foto-1.webp",
+  "/foto-2.webp",
 ];
 
 export default function Home() {
   return (
     <Preloader images={CRITICAL_IMAGES}>
       <SmoothScrollProvider>
-        <main className="flex flex-col w-full bg-[#0C0A09] overflow-x-hidden">
+        {/* Le quitamos el overflow-x-hidden aquí */}
+        <main className="flex flex-col w-full bg-[#0C0A09]">
+          <Navbar />
           {/* ── 1. Hero ── */}
           <HeroVideo />
-
           {/* ── 2. Zoom Parallax Gallery ── */}
           <ZoomParallax
             images={[
-              { src: "/foto-1.jpg", alt: "AguaVista foto 1" },
-              { src: "/foto-2.jpg", alt: "AguaVista foto 2" },
-              { src: "/foto-3.jpg", alt: "AguaVista foto 3" },
-              { src: "/foto-4.jpg", alt: "AguaVista foto 4" },
-              { src: "/foto-5.jpg", alt: "AguaVista foto 5" },
-              { src: "/foto-6.jpg", alt: "AguaVista foto 6" },
-              { src: "/foto-7.jpg", alt: "AguaVista foto 7" },
+              { src: "/foto-1.webp", alt: "AguaVista foto 1" },
+              { src: "/foto-2.webp", alt: "AguaVista foto 2" },
+              { src: "/foto-3.webp", alt: "AguaVista foto 3" },
+              { src: "/foto-4.webp", alt: "AguaVista foto 4" },
+              { src: "/foto-5.webp", alt: "AguaVista foto 5" },
+              { src: "/foto-6.webp", alt: "AguaVista foto 6" },
+              { src: "/foto-7.webp", alt: "AguaVista foto 7" },
             ]}
           />
+
+          {/* ── 3. Zonas Exclusivas (EL NUEVO COMPONENTE) ── */}
+          <ZoneGallery />
 
           {/* ── 3. Lifestyle / Amenities ── */}
           <VerticalReels />
 
-          {/* ── 3. Masterplan Interactivo ── */}
+          {/* ── 4. Masterplan Interactivo ── */}
           <InteractiveMap />
 
           {/* ── Footer ── */}

@@ -2,127 +2,95 @@
 
 import { useScroll, useTransform, motion } from 'framer-motion';
 import { useRef } from 'react';
-import Floating, { FloatingElement } from './floating';
-import ShutterImageLoader from './shutter-image';
+import Image from 'next/image';
 
-interface Image { src: string; alt?: string; }
-interface ZoomParallaxProps { images: Image[]; }
+interface ImgData {
+	src: string;
+	alt?: string;
+}
+
+interface ZoomParallaxProps {
+	images: ImgData[];
+}
 
 export function ZoomParallax({ images }: ZoomParallaxProps) {
-	const container = useRef(null);
-	const { scrollYProgress } = useScroll({
-		target: container,
+	const mainContainer = useRef(null);
+	const { scrollYProgress: globalScroll } = useScroll({
+		target: mainContainer,
 		offset: ['start end', 'end start'],
 	});
+	
+	const backgroundY = useTransform(globalScroll, [0, 1], ['0%', '20%']);
 
-	const y1 = useTransform(scrollYProgress, [0, 1], [0, -150]);
-	const y2 = useTransform(scrollYProgress, [0, 1], [0, -350]);
-	const y3 = useTransform(scrollYProgress, [0, 1], [0, -200]);
+	const galleryContainer = useRef(null);
+	const { scrollYProgress: galleryScroll } = useScroll({
+		target: galleryContainer,
+		offset: ['start start', 'end end'],
+	});
 
-	// Fondo: Arranca con 25% de recorte a cada lado (50% visible en el centro) y se expande al 100%
-	const bgClipPath = useTransform(scrollYProgress, [0, 0.7], ['inset(0% 25% 0% 25%)', 'inset(0% 0% 0% 0%)']);
+	const scale4 = useTransform(galleryScroll, [0, 1], [1, 4]);
+	const scale5 = useTransform(galleryScroll, [0, 1], [1, 5]);
+	const scale6 = useTransform(galleryScroll, [0, 1], [1, 6]);
+	const scale8 = useTransform(galleryScroll, [0, 1], [1, 8]);
+	const scale9 = useTransform(galleryScroll, [0, 1], [1, 9]);
+
+	const scales = [scale4, scale5, scale6, scale5, scale6, scale8, scale9];
 
 	return (
-		<div ref={container} className="relative w-full min-h-screen bg-black py-16 md:py-32 px-4 md:px-10 overflow-hidden">
-			{/* Fondo dinámico expansivo (Optimizado para GPU) */}
-			<motion.div 
-				style={{ 
-					clipPath: bgClipPath,
-					willChange: 'clip-path, transform',
-					transform: 'translateZ(0)' 
-				}}
-				className="absolute inset-0 z-0 transform-gpu"
-			>
-				<img 
-					src="/foto-8.jpg" 
-					alt="Fondo AguaVista" 
-					decoding="async"
-					loading="lazy"
-					className="absolute inset-0 w-full h-full object-cover object-center" 
-					onError={(e) => {
-						(e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1280';
-					}}
-				/>
-				<div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
-			</motion.div>
+		<section ref={mainContainer} className="relative w-full bg-[#0C0A09]">
+			
+			{/* ── Fondo Parallax ── */}
+			<div className="absolute inset-0 overflow-hidden pointer-events-none">
+				<motion.div 
+					style={{ y: backgroundY }}
+					className="absolute -top-[10%] left-0 w-full h-[120%]"
+				>
+					<Image src="/playa.webp" alt="Fondo textura" fill className="object-cover opacity-15" sizes="100vw" />
+					<div className="absolute inset-0 bg-gradient-to-b from-[#0C0A09] via-transparent to-[#0C0A09]" />
+				</motion.div>
+			</div>
 
-			<Floating sensitivity={1.5} className="relative z-10 w-full h-full">
-				{/* Mobile: single column stacked layout */}
-				<div className="flex flex-col gap-6 md:hidden w-full max-w-lg mx-auto">
-					{images[0] && (
-						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-							<ShutterImageLoader src={images[0].src} alt={images[0].alt} direction="ttb" />
-						</div>
-					)}
-					{images[2] && (
-						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-							<ShutterImageLoader src={images[2].src} alt={images[2].alt} direction="ttb" />
-						</div>
-					)}
-					{images[4] && (
-						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-							<ShutterImageLoader src={images[4].src} alt={images[4].alt} direction="ttb" />
-						</div>
-					)}
-					{images[6] && (
-						<div className="relative w-full aspect-[4/3] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-							<ShutterImageLoader src={images[6].src} alt={images[6].alt} direction="ttb" />
-						</div>
-					)}
+			{/* ── Texto con Animación Dramática (Blur + Slide up) ── */}
+			<div className="relative z-10 min-h-screen w-full flex flex-col items-center justify-center px-4 text-center">
+				<motion.span 
+					initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+					whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+					transition={{ duration: 1, ease: "easeOut" }}
+					viewport={{ once: true }}
+					className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs font-light tracking-[0.3em] text-[#C9A962] uppercase mb-6"
+				>
+					Un refugio sin precedentes
+				</motion.span>
+				<motion.h2 
+					initial={{ opacity: 0, y: 50, filter: 'blur(10px)', scale: 0.95 }}
+					whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
+					transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+					viewport={{ once: true }}
+					className="font-[family-name:var(--font-cormorant)] text-4xl md:text-6xl lg:text-7xl text-[#FAFAF9] font-light max-w-4xl leading-tight"
+				>
+					Diseñado con absoluta precisión para quienes exigen <span className="italic text-[#A8A29E]">lo extraordinario.</span>
+				</motion.h2>
+			</div>
+
+			{/* ── Galería Zoom Parallax (Scroll Reducido a 150vh) ── */}
+			<div ref={galleryContainer} className="relative h-[150vh] z-10">
+				<div className="sticky top-0 h-screen overflow-hidden">
+					{images.map(({ src, alt }, index) => {
+						const scale = scales[index % scales.length];
+						return (
+							<motion.div
+								key={index}
+								style={{ scale }}
+								className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${index === 1 ? '[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]' : ''} ${index === 2 ? '[&>div]:!-top-[10vh] [&>div]:!-left-[25vw] [&>div]:!h-[45vh] [&>div]:!w-[20vw]' : ''} ${index === 3 ? '[&>div]:!left-[27.5vw] [&>div]:!h-[25vh] [&>div]:!w-[25vw]' : ''} ${index === 4 ? '[&>div]:!top-[27.5vh] [&>div]:!left-[5vw] [&>div]:!h-[25vh] [&>div]:!w-[20vw]' : ''} ${index === 5 ? '[&>div]:!top-[27.5vh] [&>div]:!-left-[22.5vw] [&>div]:!h-[25vh] [&>div]:!w-[30vw]' : ''} ${index === 6 ? '[&>div]:!top-[22.5vh] [&>div]:!left-[25vw] [&>div]:!h-[15vh] [&>div]:!w-[15vw]' : ''} `}
+							>
+								<div className="relative h-[25vh] w-[25vw]">
+									<Image src={src || '/placeholder.svg'} alt={alt || `Parallax image ${index + 1}`} fill className="object-cover" priority={true} sizes="(max-width: 768px) 100vw, 33vw" />
+								</div>
+							</motion.div>
+						);
+					})}
 				</div>
-
-				{/* Desktop: 3-column staggered layout */}
-				<div className="hidden md:grid grid-cols-3 gap-10 w-full max-w-7xl mx-auto">
-					
-					{/* Columna Izquierda */}
-					<motion.div style={{ y: y1 }} className="flex flex-col gap-10 pt-20">
-						{images[0] && (
-							<FloatingElement depth={1.2} className="relative w-full aspect-[4/5] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-								<ShutterImageLoader src={images[0].src} alt={images[0].alt} direction="ltr" />
-							</FloatingElement>
-						)}
-						{images[1] && (
-							<FloatingElement depth={0.8} className="relative w-full aspect-square shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-								<ShutterImageLoader src={images[1].src} alt={images[1].alt} direction="ltr" />
-							</FloatingElement>
-						)}
-					</motion.div>
-
-					{/* Columna Central (Coreografía Vertical) */}
-					<motion.div style={{ y: y2 }} className="flex flex-col gap-10">
-						{images[2] && (
-							<FloatingElement depth={1.5} className="relative w-full aspect-[3/4] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-								<ShutterImageLoader src={images[2].src} alt={images[2].alt} direction="ttb" />
-							</FloatingElement>
-						)}
-						{images[3] && (
-							<FloatingElement depth={0.5} className="relative w-full aspect-video shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-								<ShutterImageLoader src={images[3].src} alt={images[3].alt} direction="center" />
-							</FloatingElement>
-						)}
-						{images[6] && (
-							<FloatingElement depth={1.1} className="relative w-full aspect-square shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-								<ShutterImageLoader src={images[6].src} alt={images[6].alt} direction="btt" />
-							</FloatingElement>
-						)}
-					</motion.div>
-
-					{/* Columna Derecha */}
-					<motion.div style={{ y: y3 }} className="flex flex-col gap-10 pt-40">
-						{images[4] && (
-							<FloatingElement depth={0.9} className="relative w-full aspect-video shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-								<ShutterImageLoader src={images[4].src} alt={images[4].alt} direction="rtl" />
-							</FloatingElement>
-						)}
-						{images[5] && (
-							<FloatingElement depth={1.4} className="relative w-full aspect-[4/5] shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-								<ShutterImageLoader src={images[5].src} alt={images[5].alt} direction="rtl" />
-							</FloatingElement>
-						)}
-					</motion.div>
-
-				</div>
-			</Floating>
-		</div>
+			</div>
+		</section>
 	);
 }
