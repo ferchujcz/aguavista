@@ -108,7 +108,7 @@ export default function VerticalReels() {
 
         {/*
          * TEXTO — Mobile: order-1 (arriba), flujo normal
-         *         Desktop: col-start-1, con parallax vertical via motion.div
+         *         Desktop: col-start-1, con parallax vertical via motion.div4
          */}
         <div
           ref={textRef}
