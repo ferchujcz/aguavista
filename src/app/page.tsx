@@ -83,15 +83,15 @@ export default function Home() {
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <span className="font-[family-name:var(--font-cormorant)] text-2xl font-light tracking-[0.3em] text-[#FAFAF9] uppercase">
-                    Aurum
+                    
                   </span>
                   <span className="w-px h-4 bg-[#C9A962]/40" aria-hidden="true" />
                   <span className="font-[family-name:var(--font-josefin)] text-[10px] font-light tracking-[0.25em] text-[#A8A29E] uppercase">
-                    Real Estate
+                    
                   </span>
                 </div>
                 <p className="font-[family-name:var(--font-josefin)] text-[11px] font-light tracking-[0.06em] text-[#44403C] max-w-xs leading-relaxed">
-                  Residencias de ultra lujo para quienes no aceptan compromisos. Desde USD 1.000.000.
+
                 </p>
               </div>
 
@@ -116,10 +116,10 @@ export default function Home() {
 
             <div className="mt-12 pt-6 border-t border-[#1C1917] flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <span className="font-[family-name:var(--font-josefin)] text-[9px] font-light tracking-[0.15em] text-[#292524] uppercase">
-                © {new Date().getFullYear()} Aurum Real Estate. Todos los derechos reservados.
+                © {new Date().getFullYear()} 
               </span>
               <span className="font-[family-name:var(--font-josefin)] text-[9px] font-light tracking-[0.15em] text-[#292524] uppercase">
-                Diseño Premium · Construido con Next.js
+                
               </span>
             </div>
           </footer>

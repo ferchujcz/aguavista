@@ -86,26 +86,18 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 							>
 								<div className="relative h-[25vh] w-[25vw]">
 									{isText ? (
-										// ── BLOQUE CENTRAL DE LUJO CON IMAGEN + TEXTO ──
-										<div className="relative w-full h-full overflow-hidden shadow-2xl">
-											{/* La foto real de fondo para que no quede vació */}
-											<Image src={src || '/aero1.webp'} alt="Fondo instalaciones" fill className="object-cover" />
-											
-											{/* Filtro cinemático: lo oscurece y le da un toque de desenfoque */}
-											<div className="absolute inset-0 bg-black/60 backdrop-blur-[3px]" />
-											
-											{/* El texto centrado */}
-											<div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10">
-												<span className="font-[family-name:var(--font-josefin)] text-[6px] md:text-[8px] tracking-[0.4em] text-[#C9A962] uppercase mb-2">
-													Descubrir
-												</span>
-												<h3 className="font-[family-name:var(--font-cormorant)] text-lg md:text-2xl text-[#FAFAF9] font-light leading-snug drop-shadow-md">
-													Conoce nuestras <br/>
-													<span className="italic text-[#A8A29E]">instalaciones</span>
-												</h3>
-											</div>
-										</div>
-									) : (
+                                        // ── BLOQUE CENTRAL SOLO TEXTO LIMPIO ──
+                                        <div className="relative w-full h-full flex flex-col items-center justify-center p-4 text-center">
+                                            {/* El texto centrado stays, but the Image and cinematic overlay are gone */}
+                                            <span className="font-[family-name:var(--font-josefin)] text-[6px] md:text-[8px] tracking-[0.4em] text-[#C9A962] uppercase mb-2">
+                                                Descubrir
+                                            </span>
+                                            <h3 className="font-[family-name:var(--font-cormorant)] text-lg md:text-2xl text-[#FAFAF9] font-light leading-snug drop-shadow-md">
+                                                Conoce nuestras <br/>
+                                                <span className="italic text-[#A8A29E]">instalaciones</span>
+                                            </h3>
+                                        </div>
+                                    ) : (
 										// ── LAS DEMÁS FOTOS DE LA GRILLA ──
 										<Image src={src || '/placeholder.svg'} alt={alt || `Parallax image ${index + 1}`} fill className="object-cover shadow-2xl" priority={true} sizes="(max-width: 768px) 100vw, 33vw" />
 									)}
