@@ -76,36 +76,45 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 			{/* ── Galería Zoom Parallax ── */}
 			<div ref={galleryContainer} className="relative h-[150vh] z-10">
 				<div className="sticky top-0 h-screen overflow-hidden">
-					{images.map(({ src, alt, isText }, index) => {
-						const scale = scales[index % scales.length];
-						return (
-							<motion.div
-								key={index}
-								style={{ scale }}
-								className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${index === 1 ? '[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]' : ''} ${index === 2 ? '[&>div]:!-top-[10vh] [&>div]:!-left-[25vw] [&>div]:!h-[45vh] [&>div]:!w-[20vw]' : ''} ${index === 3 ? '[&>div]:!left-[27.5vw] [&>div]:!h-[25vh] [&>div]:!w-[25vw]' : ''} ${index === 4 ? '[&>div]:!top-[27.5vh] [&>div]:!left-[5vw] [&>div]:!h-[25vh] [&>div]:!w-[20vw]' : ''} ${index === 5 ? '[&>div]:!top-[27.5vh] [&>div]:!-left-[22.5vw] [&>div]:!h-[25vh] [&>div]:!w-[30vw]' : ''} ${index === 6 ? '[&>div]:!top-[22.5vh] [&>div]:!left-[25vw] [&>div]:!h-[15vh] [&>div]:!w-[15vw]' : ''} `}
-							>
-								<div className="relative h-[25vh] w-[25vw]">
-									{isText ? (
-                                        // ── BLOQUE CENTRAL SOLO TEXTO LIMPIO ──
-                                        <div className="relative w-full h-full flex flex-col items-center justify-center p-4 text-center">
-                                            {/* El texto centrado stays, but the Image and cinematic overlay are gone */}
-                                            <span className="font-[family-name:var(--font-josefin)] text-[6px] md:text-[8px] tracking-[0.4em] text-[#C9A962] uppercase mb-2">
-                                                Descubrir
-                                            </span>
-                                            <h3 className="font-[family-name:var(--font-cormorant)] text-lg md:text-2xl text-[#FAFAF9] font-light leading-snug drop-shadow-md">
-                                                Conoce nuestras <br/>
-                                                <span className="italic text-[#A8A29E]">instalaciones</span>
-                                            </h3>
-                                        </div>
-                                    ) : (
-										// ── LAS DEMÁS FOTOS DE LA GRILLA ──
-										<Image src={src || '/placeholder.svg'} alt={alt || `Parallax image ${index + 1}`} fill className="object-cover shadow-2xl" priority={true} sizes="(max-width: 768px) 100vw, 33vw" />
-									)}
-								</div>
-							</motion.div>
-						);
-					})}
-				</div>
+    
+    {/* ── TEXTO CENTRAL FIJO (FUERA DEL MAP PARA NO PIXELARSE) ── */}
+    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-50 pointer-events-none">
+        <span className="font-[family-name:var(--font-josefin)] text-sm md:text-base tracking-[0.4em] text-[#C9A962] uppercase mb-2 drop-shadow-md">
+            Descubrir
+        </span>
+        {/* Subí el tamaño de la fuente a text-4xl / 6xl porque al no tener zoom, necesita ser grande desde el principio */}
+        <h3 className="font-[family-name:var(--font-cormorant)] text-4xl md:text-5xl lg:text-6xl text-[#FAFAF9] font-light leading-snug drop-shadow-lg">
+            Conoce nuestras <br/>
+            <span className="italic text-[#A8A29E]">instalaciones</span>
+        </h3>
+    </div>
+
+    {/* ── MAPEO DE IMÁGENES (SOLO FOTOS) ── */}
+    {images.map(({ src, alt, isText }, index) => {
+        // Si el ítem es el texto, lo salteamos para que no se renderice y no sufra el zoom
+        if (isText) return null;
+
+        const scale = scales[index % scales.length];
+        return (
+            <motion.div
+                key={index}
+                style={{ scale }}
+                className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${index === 1 ? '[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]' : ''} ${index === 2 ? '[&>div]:!-top-[10vh] [&>div]:!-left-[25vw] [&>div]:!h-[45vh] [&>div]:!w-[20vw]' : ''} ${index === 3 ? '[&>div]:!left-[27.5vw] [&>div]:!h-[25vh] [&>div]:!w-[25vw]' : ''} ${index === 4 ? '[&>div]:!top-[27.5vh] [&>div]:!left-[5vw] [&>div]:!h-[25vh] [&>div]:!w-[20vw]' : ''} ${index === 5 ? '[&>div]:!top-[27.5vh] [&>div]:!-left-[22.5vw] [&>div]:!h-[25vh] [&>div]:!w-[30vw]' : ''} ${index === 6 ? '[&>div]:!top-[22.5vh] [&>div]:!left-[25vw] [&>div]:!h-[15vh] [&>div]:!w-[15vw]' : ''} `}
+            >
+                <div className="relative h-[25vh] w-[25vw]">
+                    <Image 
+                        src={src || '/placeholder.svg'} 
+                        alt={alt || `Parallax image ${index + 1}`} 
+                        fill 
+                        className="object-cover shadow-2xl" 
+                        priority={true} 
+                        sizes="(max-width: 768px) 100vw, 33vw" 
+                    />
+                </div>
+            </motion.div>
+        );
+    })}
+</div>
 			</div>
 		</section>
 	);
