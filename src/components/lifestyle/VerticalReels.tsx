@@ -101,7 +101,7 @@ export default function VerticalReels() {
        * DIAGNÓSTICO FINAL DEL PROBLEMA:
        * El texto era demasiado corto (~300px) comparado con la sección
        * (~3000px). Aunque se movía con el scroll, el movimiento era tan
-       * pequeño que era imperceptible. La solución es usar un parallax
+       * pequeño que era imperceptible. La solución es usar un parallaxñ
        * explícito con useTransform para que el texto se desplace
        * visiblemente (100px → -200px) durante el recorrido de la sección.
        */}
