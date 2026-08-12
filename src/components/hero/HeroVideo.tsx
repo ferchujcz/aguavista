@@ -79,10 +79,10 @@ export default function HeroVideo({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          // Cambiamos a Cormorant (la tipografía elegante) y le dimos más peso
-          className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium tracking-wide text-[#FAFAF9] uppercase max-w-5xl leading-[1.1] mb-6 drop-shadow-2xl"
+          // Opcional: Agregar "text-balance" en la clase ayuda a que Tailwind equilibre las líneas automáticamente si usas versión 3.3+
+          className="font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-medium tracking-wide text-[#FAFAF9] uppercase max-w-5xl leading-[1.1] mb-6 drop-shadow-2xl text-balance"
         >
-          Viví en paz rodeado de un <br className="hidden md:block" /> entorno natural y acogedor
+          Viví en paz rodeado de <br className="hidden md:block" /> un&nbsp;entorno natural y acogedor
         </motion.h1>
 
         <motion.p
