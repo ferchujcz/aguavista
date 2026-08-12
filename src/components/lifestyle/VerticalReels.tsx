@@ -52,6 +52,7 @@ export default function VerticalReels() {
   // desde el inicio hasta el final de la sección de reels.
   const textY = useTransform(scrollYProgress, [0, 1], [-150, 1350]);
   // ── FIN PARALLAX ──────────────────────────────────────────────────────────
+  // ── FIN PARALLAX ──────────────────────────────────────────────────────────
 
   return (
     /*
@@ -100,7 +101,7 @@ export default function VerticalReels() {
        * DIAGNÓSTICO FINAL DEL PROBLEMA:
        * El texto era demasiado corto (~300px) comparado con la sección
        * (~3000px). Aunque se movía con el scroll, el movimiento era tan
-       * pequeño que era imperceptible. La solución es usar un parallax
+       * pequeño que era imperceptible. La solución es usar un parallaxñ
        * explícito con useTransform para que el texto se desplace
        * visiblemente (100px → -200px) durante el recorrido de la sección.
        */}
