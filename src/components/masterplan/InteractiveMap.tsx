@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
-// ── 1. LA ESTRUCTURA EXACTA DEL EMBUDO (CON TOUR DE CASA) ──
+// ── 1. LA ESTRUCTURA EXACTA DEL EMBUDO (CORREGIDA) ──
 const MASTERPLAN_CONFIG = {
   global360: '/exterior.jpg', 
   
@@ -13,14 +13,16 @@ const MASTERPLAN_CONFIG = {
       id: 'zona-1',
       title: 'Zona 1 - General',
       hotspot: { pitch: -15, yaw: 120 }, 
-      macroImage: '/areozona1.jpg', 
+      // 👇 ACÁ ESTÁ EL FIX: LA IMAGEN GIGANTE PRINCIPAL
+      macroImage: '/areo.webp', 
       
       subZones: [
         {
           id: 'manzana-a',
           title: 'Manzana A',
           polygon: '10.00,10.00 40.00,10.00 40.00,40.00 10.00,40.00', 
-          microImage: '/areozona2.jpg', 
+          // 👇 ACÁ ESTÁ EL FIX: EL ZOOM A LA MANZANA
+          microImage: '/areozona1.jpg', 
           street360: '/barrio.webp', 
           
           specs: {
@@ -37,11 +39,11 @@ const MASTERPLAN_CONFIG = {
               number: "Lote 01",
               size: "800m²",
               
-              // ── NUEVO: TOUR VIRTUAL DE LA CASA (MÚLTIPLES HABITACIONES) ──
+              // TOUR VIRTUAL DE LA CASA
               houseTour: [
                 {
-                  id: 'living', // ID de la habitación principal
-                  image: '/living1.jpg', // La foto 360 del living
+                  id: 'living', 
+                  image: '/interior-living.webp', 
                   hotspots: [
                     { pitch: 0, yaw: 45, targetId: 'cocina', text: 'Ir a la Cocina' },
                     { pitch: -5, yaw: 180, targetId: 'patio', text: 'Salir al Patio' }
@@ -49,14 +51,14 @@ const MASTERPLAN_CONFIG = {
                 },
                 {
                   id: 'cocina',
-                  image: '/living1.jpg',
+                  image: '/interior-cocina.webp',
                   hotspots: [
                     { pitch: 5, yaw: -120, targetId: 'living', text: 'Volver al Living' }
                   ]
                 },
                 {
-                  id: 'living2',
-                  image: '/living2.jpg',
+                  id: 'patio',
+                  image: '/exterior-patio.webp',
                   hotspots: [
                     { pitch: 0, yaw: 90, targetId: 'living', text: 'Entrar a la Casa' }
                   ]
@@ -80,7 +82,7 @@ export default function InteractiveMap() {
   const [activeZone, setActiveZone] = useState<typeof MASTERPLAN_CONFIG.zones[0] | null>(null);
   const [activeSubZone, setActiveSubZone] = useState<SubZoneType | null>(null);
   const [activeLot, setActiveLot] = useState<LotType | null>(null);
-  const [activeRoom, setActiveRoom] = useState<RoomType | null>(null); // Estado para la habitación actual
+  const [activeRoom, setActiveRoom] = useState<RoomType | null>(null); 
   
   // ESTADOS DEL ADMIN
   const [isAdminActive, setIsAdminActive] = useState(false);
@@ -114,7 +116,7 @@ export default function InteractiveMap() {
     setCurrentDrawing([]);
   };
 
-  // MOTOR 360 NATIVO (Actualizado para navegar habitaciones)
+  // MOTOR 360 NATIVO 
   useEffect(() => {
     if (viewState === '2D_MACRO' || viewState === '2D_MICRO') return;
 
@@ -140,7 +142,6 @@ export default function InteractiveMap() {
           }
         }));
       } else if (viewState === '360_HOUSE' && activeRoom) {
-        // Hotspots para saltar de habitación en habitación
         hotSpots = activeRoom.hotspots.map(hs => ({
           pitch: hs.pitch, yaw: hs.yaw, type: 'custom', cssClass: 'punto-dorado-calle',
           createTooltipFunc: (hotSpotDiv: any) => {
@@ -200,7 +201,7 @@ export default function InteractiveMap() {
     const centerY = (currentDrawing.reduce((acc, p) => acc + p.y, 0) / currentDrawing.length).toFixed(2);
 
     if (viewState === '2D_MACRO') {
-      setTempPolygons([...tempPolygons, { id: `manzana-${Date.now()}`, title: `Manzana ${tempPolygons.length + 1}`, polygon: pointsStr, microImage: '/ruta_imagen_zoom.jpg', street360: '', specs: { description: '', features: [] }, lots: [] }]);
+      setTempPolygons([...tempPolygons, { id: `manzana-${Date.now()}`, title: `Manzana ${tempPolygons.length + 1}`, polygon: pointsStr, microImage: '/areozona1.jpg', street360: '', specs: { description: '', features: [] }, lots: [] }]);
     } else if (viewState === '2D_MICRO') {
       setTempPolygons([...tempPolygons, { id: `lote-${Date.now()}`, points: pointsStr, center: { x: centerX, y: centerY }, status: 'disponible', number: `Lote ${tempPolygons.length + 1}`, size: '800m²', houseTour: [] }]);
     }
