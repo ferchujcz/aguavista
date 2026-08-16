@@ -6,7 +6,7 @@ import Preloader from "@/components/ui/preloader";
 import { ZoomParallax } from "@/components/ui/zoom-parallax";
 import { ZoneGallery } from "@/components/ui/zone-gallery";
 import { Navbar } from "@/components/ui/navbar";
-import { VirtualTour } from "@/components/ui/virtual-tour";
+
 import { FAQ } from "@/components/ui/faq"; // <-- IMPORTAMOS EL NUEVO FAQ
 
 const CRITICAL_IMAGES = [
@@ -47,10 +47,9 @@ export default function Home() {
           {/* ── Lifestyle (Opcional, lo podés dejar acá o sacarlo) ── */}
           <VerticalReels />
 
-          {/* ── 3. Propiedades ── */}
-          <div id="propiedades">
-            {/* <InteractiveMap />*/}
-            <VirtualTour />
+          {/* ── 3. Propiedades / Masterplan ── */}
+          <div id="propiedades" className="w-full clear-both block">
+            <InteractiveMap />
           </div>
 
           {/* ── 4. Contacto (Estructura Lista) ── */}
