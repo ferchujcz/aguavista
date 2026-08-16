@@ -4,24 +4,24 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 
-// ── 1. LA ESTRUCTURA EXACTA DEL EMBUDO ──
+// ── 1. LA ESTRUCTURA EXACTA DEL EMBUDO (CON TOUR DE CASA) ──
 const MASTERPLAN_CONFIG = {
-  global360: '/exterior.jpg', // 1. Foto desde el cielo
+  global360: '/exterior.jpg', 
   
   zones: [
     {
       id: 'zona-1',
       title: 'Zona 1 - General',
-      hotspot: { pitch: -15, yaw: 120 }, // Punto en el cielo
-      macroImage: '/areozona1.jpg', // 2. Foto 2D amplia (Se ven las manzanas)
+      hotspot: { pitch: -15, yaw: 120 }, 
+      macroImage: '/areozona1.jpg', 
       
       subZones: [
         {
           id: 'manzana-a',
           title: 'Manzana A',
-          polygon: '10.00,10.00 40.00,10.00 40.00,40.00 10.00,40.00', // Dibujado con el admin
-          microImage: '/areozona2.jpg', // 3. Foto 2D con Zoom (Se ven los lotes de esta manzana)
-          street360: '/barrio.webp', // 4. Foto 360 para caminar por esta manzana
+          polygon: '10.00,10.00 40.00,10.00 40.00,40.00 10.00,40.00', 
+          microImage: '/areozona2.jpg', 
+          street360: '/barrio.webp', 
           
           specs: {
             description: 'Manzana premium con acceso directo a los amenities principales.',
@@ -29,14 +29,39 @@ const MASTERPLAN_CONFIG = {
           },
           
           lots: [
-            // Los lotes delimitados dentro de la Manzana A
             {
               id: "lote-1",
               points: "15.00,15.00 25.00,15.00 25.00,30.00 15.00,30.00", 
               center: { x: "20.00", y: "22.50" }, 
               status: "disponible",
               number: "Lote 01",
-              size: "800m²"
+              size: "800m²",
+              
+              // ── NUEVO: TOUR VIRTUAL DE LA CASA (MÚLTIPLES HABITACIONES) ──
+              houseTour: [
+                {
+                  id: 'living', // ID de la habitación principal
+                  image: '/living1.jpg', // La foto 360 del living
+                  hotspots: [
+                    { pitch: 0, yaw: 45, targetId: 'cocina', text: 'Ir a la Cocina' },
+                    { pitch: -5, yaw: 180, targetId: 'patio', text: 'Salir al Patio' }
+                  ]
+                },
+                {
+                  id: 'cocina',
+                  image: '/living1.jpg',
+                  hotspots: [
+                    { pitch: 5, yaw: -120, targetId: 'living', text: 'Volver al Living' }
+                  ]
+                },
+                {
+                  id: 'living2',
+                  image: '/living2.jpg',
+                  hotspots: [
+                    { pitch: 0, yaw: 90, targetId: 'living', text: 'Entrar a la Casa' }
+                  ]
+                }
+              ]
             }
           ]
         }
@@ -45,27 +70,28 @@ const MASTERPLAN_CONFIG = {
   ]
 };
 
-type ViewState = '360_GLOBAL' | '2D_MACRO' | '2D_MICRO' | '360_STREET';
+type ViewState = '360_GLOBAL' | '2D_MACRO' | '2D_MICRO' | '360_STREET' | '360_HOUSE';
 type SubZoneType = typeof MASTERPLAN_CONFIG.zones[0]['subZones'][0];
-type LotType = SubZoneType['lots'][0];
+type RoomType = { id: string, image: string, hotspots: { pitch: number, yaw: number, targetId: string, text: string }[] };
+type LotType = { id: string, points: string, center: {x: string, y: string}, status: string, number: string, size: string, houseTour?: RoomType[] };
 
 export default function InteractiveMap() {
-  // ESTADOS DEL EMBUDO
   const [viewState, setViewState] = useState<ViewState>('360_GLOBAL');
   const [activeZone, setActiveZone] = useState<typeof MASTERPLAN_CONFIG.zones[0] | null>(null);
   const [activeSubZone, setActiveSubZone] = useState<SubZoneType | null>(null);
   const [activeLot, setActiveLot] = useState<LotType | null>(null);
+  const [activeRoom, setActiveRoom] = useState<RoomType | null>(null); // Estado para la habitación actual
   
   // ESTADOS DEL ADMIN
   const [isAdminActive, setIsAdminActive] = useState(false);
   const [currentDrawing, setCurrentDrawing] = useState<{x: number, y: number}[]>([]);
-  const [tempPolygons, setTempPolygons] = useState<any[]>([]); // Guarda manzanas o lotes temporales
+  const [tempPolygons, setTempPolygons] = useState<any[]>([]); 
   const [clickedCoords3D, setClickedCoords3D] = useState<{pitch: string, yaw: string} | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<any>(null);
 
-  // LA LLAVE SECRETA (3 Clics)
+  // LA LLAVE SECRETA (3 CLICS)
   const [clickCount, setClickCount] = useState(0);
   const handleSecretClick = () => {
     setClickCount(prev => prev + 1);
@@ -77,13 +103,18 @@ export default function InteractiveMap() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get('admin') === 'solari') setIsAdminActive(true);
+    if (typeof window !== 'undefined' && window.location.search.includes('admin=solari')) {
+      setIsAdminActive(true);
     }
   }, []);
 
-  // MOTOR 360
+  const changeView = (newView: ViewState) => {
+    setViewState(newView);
+    setTempPolygons([]);
+    setCurrentDrawing([]);
+  };
+
+  // MOTOR 360 NATIVO (Actualizado para navegar habitaciones)
   useEffect(() => {
     if (viewState === '2D_MACRO' || viewState === '2D_MICRO') return;
 
@@ -91,7 +122,11 @@ export default function InteractiveMap() {
       const pnl = (window as any).pannellum;
       if (!pnl || !containerRef.current) return;
 
-      const imageToLoad = viewState === '360_GLOBAL' ? MASTERPLAN_CONFIG.global360 : activeSubZone?.street360;
+      const imageToLoad = 
+        viewState === '360_GLOBAL' ? MASTERPLAN_CONFIG.global360 : 
+        viewState === '360_STREET' ? activeSubZone?.street360 : 
+        viewState === '360_HOUSE' ? activeRoom?.image : '';
+
       let hotSpots: any[] = [];
       
       if (viewState === '360_GLOBAL') {
@@ -101,9 +136,23 @@ export default function InteractiveMap() {
             if (hotSpotDiv.innerHTML === "") hotSpotDiv.innerHTML = `<span class="cartel-flotante text-[10px]">${zone.title}</span>`;
           },
           clickHandlerFunc: () => {
-            if (!isAdminActive) { setActiveZone(zone); setViewState('2D_MACRO'); }
+            if (!isAdminActive) { setActiveZone(zone); changeView('2D_MACRO'); }
           }
         }));
+      } else if (viewState === '360_HOUSE' && activeRoom) {
+        // Hotspots para saltar de habitación en habitación
+        hotSpots = activeRoom.hotspots.map(hs => ({
+          pitch: hs.pitch, yaw: hs.yaw, type: 'custom', cssClass: 'punto-dorado-calle',
+          createTooltipFunc: (hotSpotDiv: any) => {
+            if (hotSpotDiv.innerHTML === "") hotSpotDiv.innerHTML = `<span class="cartel-flotante text-[10px]">${hs.text}</span>`;
+          },
+          clickHandlerFunc: () => {
+            if (!isAdminActive) {
+              const nextRoom = activeLot?.houseTour?.find(r => r.id === hs.targetId);
+              if (nextRoom) setActiveRoom(nextRoom);
+            }
+          }
+        })) || [];
       }
 
       viewerRef.current = pnl.viewer(containerRef.current, {
@@ -133,7 +182,7 @@ export default function InteractiveMap() {
     }
 
     return () => { if (viewerRef.current) { viewerRef.current.destroy(); viewerRef.current = null; } };
-  }, [viewState, isAdminActive, activeZone, activeSubZone]);
+  }, [viewState, isAdminActive, activeZone, activeSubZone, activeLot, activeRoom]);
 
   // LÓGICA DE DIBUJO (Admin)
   const handle2DClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -151,9 +200,9 @@ export default function InteractiveMap() {
     const centerY = (currentDrawing.reduce((acc, p) => acc + p.y, 0) / currentDrawing.length).toFixed(2);
 
     if (viewState === '2D_MACRO') {
-      setTempPolygons([...tempPolygons, { id: `manzana-${Date.now()}`, title: `Manzana ${tempPolygons.length + 1}`, polygon: pointsStr, microImage: '/ruta_imagen_zoom.jpg', lots: [] }]);
+      setTempPolygons([...tempPolygons, { id: `manzana-${Date.now()}`, title: `Manzana ${tempPolygons.length + 1}`, polygon: pointsStr, microImage: '/ruta_imagen_zoom.jpg', street360: '', specs: { description: '', features: [] }, lots: [] }]);
     } else if (viewState === '2D_MICRO') {
-      setTempPolygons([...tempPolygons, { id: `lote-${Date.now()}`, points: pointsStr, center: { x: centerX, y: centerY }, status: 'disponible', number: `Lote ${tempPolygons.length + 1}`, size: '800m²' }]);
+      setTempPolygons([...tempPolygons, { id: `lote-${Date.now()}`, points: pointsStr, center: { x: centerX, y: centerY }, status: 'disponible', number: `Lote ${tempPolygons.length + 1}`, size: '800m²', houseTour: [] }]);
     }
     setCurrentDrawing([]);
   };
@@ -163,14 +212,18 @@ export default function InteractiveMap() {
     alert('¡Copiado! Pegalo en tu archivo de código.');
   };
 
+  const is360View = viewState === '360_GLOBAL' || viewState === '360_STREET' || viewState === '360_HOUSE';
+
   return (
     <section className="relative w-full block clear-both bg-[#0C0A09] py-24 md:py-32" id="propiedades">
       <style>{`
         .pnlm-error-msg { display: none !important; }
         .punto-dorado { width: 22px; height: 22px; background-color: #C9A962; border-radius: 50%; border: 3px solid #0C0A09; box-shadow: 0 0 12px rgba(201, 169, 98, 0.8); cursor: pointer; transition: transform 0.2s ease; pointer-events: auto; }
         .punto-dorado:hover { transform: scale(1.3); }
+        .punto-dorado-calle { width: 30px; height: 30px; background-color: rgba(255,255,255,0.2); border-radius: 50%; border: 2px solid #FAFAF9; backdrop-filter: blur(4px); cursor: pointer; transition: transform 0.2s ease; pointer-events: auto; }
+        .punto-dorado-calle:hover { transform: scale(1.3); }
         .cartel-flotante { position: absolute; bottom: 35px; left: 50%; transform: translateX(-50%); background-color: rgba(12, 10, 9, 0.95); color: #FAFAF9; padding: 8px 14px; border: 1px solid rgba(201, 169, 98, 0.5); font-family: var(--font-josefin), sans-serif; text-transform: uppercase; letter-spacing: 2px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; }
-        .punto-dorado:hover .cartel-flotante { opacity: 1; }
+        .punto-dorado:hover .cartel-flotante, .punto-dorado-calle:hover .cartel-flotante { opacity: 1; }
       `}</style>
 
       {/* ENCABEZADO */}
@@ -197,31 +250,39 @@ export default function InteractiveMap() {
           </span>
           {viewState === '2D_MACRO' && <span className="font-[family-name:var(--font-josefin)] text-[10px] uppercase tracking-widest text-white bg-black/80 px-3 py-1.5 rounded-sm backdrop-blur-md w-max mt-1 border border-white/20">Vista Macro (Manzanas)</span>}
           {viewState === '2D_MICRO' && <span className="font-[family-name:var(--font-josefin)] text-[10px] uppercase tracking-widest text-white bg-black/80 px-3 py-1.5 rounded-sm backdrop-blur-md w-max mt-1 border border-white/20">Vista Micro ({activeSubZone?.title})</span>}
-          {viewState === '360_STREET' && <span className="font-[family-name:var(--font-josefin)] text-[10px] uppercase tracking-widest text-white bg-black/80 px-3 py-1.5 rounded-sm backdrop-blur-md w-max mt-1 border border-white/20">Recorrido 360</span>}
+          {viewState === '360_STREET' && <span className="font-[family-name:var(--font-josefin)] text-[10px] uppercase tracking-widest text-white bg-black/80 px-3 py-1.5 rounded-sm backdrop-blur-md w-max mt-1 border border-white/20">Recorrido 360 por Calle</span>}
+          {viewState === '360_HOUSE' && <span className="font-[family-name:var(--font-josefin)] text-[10px] uppercase tracking-widest text-white bg-black/80 px-3 py-1.5 rounded-sm backdrop-blur-md w-max mt-1 border border-white/20">Casa ({activeLot?.number}) - Habitación: {activeRoom?.id}</span>}
         </div>
 
-        {/* BOTONES DE NAVEGACIÓN (EL EMBUDO HACIA ATRÁS) */}
+        {/* BOTONES DE NAVEGACIÓN */}
         <AnimatePresence>
           {viewState !== '360_GLOBAL' && (
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute top-6 right-6 z-30 flex flex-col sm:flex-row gap-3 shadow-xl">
               {viewState === '2D_MACRO' && (
-                <button onClick={() => { setViewState('360_GLOBAL'); setActiveZone(null); setTempPolygons([]); setCurrentDrawing([]); }} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-black/90 text-[#A8A29E] hover:text-white border border-[#292524] px-6 py-3 transition-all">
+                <button onClick={() => { changeView('360_GLOBAL'); setActiveZone(null); }} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-black/90 text-[#A8A29E] hover:text-white border border-[#292524] px-6 py-3 transition-all">
                   Volver al Cielo
                 </button>
               )}
               {viewState === '2D_MICRO' && (
                 <>
-                  <button onClick={() => { setViewState('2D_MACRO'); setActiveSubZone(null); setActiveLot(null); setTempPolygons([]); setCurrentDrawing([]); }} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-black/90 text-[#C9A962] border border-[#C9A962] hover:bg-[#C9A962] hover:text-black px-6 py-3 transition-all">
+                  <button onClick={() => { changeView('2D_MACRO'); setActiveSubZone(null); setActiveLot(null); }} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-black/90 text-[#C9A962] border border-[#C9A962] hover:bg-[#C9A962] hover:text-black px-6 py-3 transition-all">
                     Volver a Vista Macro
                   </button>
-                  <button onClick={() => setViewState('360_STREET')} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-[#C9A962] text-[#0C0A09] hover:bg-white px-6 py-3 transition-colors font-bold">
-                    Caminar por Manzana
-                  </button>
+                  {activeSubZone?.street360 && (
+                    <button onClick={() => changeView('360_STREET')} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-[#C9A962] text-[#0C0A09] hover:bg-white px-6 py-3 transition-colors font-bold">
+                      Caminar por Manzana
+                    </button>
+                  )}
                 </>
               )}
               {viewState === '360_STREET' && (
-                <button onClick={() => setViewState('2D_MICRO')} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-black/90 text-[#C9A962] border border-[#C9A962] hover:bg-[#C9A962] hover:text-[#0C0A09] px-6 py-3 transition-all">
+                <button onClick={() => changeView('2D_MICRO')} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-black/90 text-[#C9A962] border border-[#C9A962] hover:bg-[#C9A962] hover:text-[#0C0A09] px-6 py-3 transition-all">
                   Volver a los Lotes
+                </button>
+              )}
+              {viewState === '360_HOUSE' && (
+                <button onClick={() => changeView('2D_MICRO')} className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs uppercase tracking-widest bg-black/90 text-[#C9A962] border border-[#C9A962] hover:bg-[#C9A962] hover:text-[#0C0A09] px-6 py-3 transition-all">
+                  Salir de la Casa
                 </button>
               )}
             </motion.div>
@@ -232,10 +293,10 @@ export default function InteractiveMap() {
         <AnimatePresence>
           {isAdminActive && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 bg-black/95 border border-[#C9A962] p-5 flex flex-col items-center text-center w-[90%] max-w-lg">
-              {viewState === '360_GLOBAL' && (
+              {(viewState === '360_GLOBAL' || viewState === '360_HOUSE' || viewState === '360_STREET') && (
                 <>
-                  <p className="font-[family-name:var(--font-josefin)] text-[10px] text-[#A8A29E] uppercase tracking-widest mb-2">Copiá este Hotspot (Punto en el cielo):</p>
-                  {clickedCoords3D ? <code className="bg-[#1C1917] p-3 text-xs text-green-400 font-mono w-full block">{`hotspot: { pitch: ${clickedCoords3D.pitch}, yaw: ${clickedCoords3D.yaw} }`}</code> : <p className="text-xs text-white">Clic en el cielo para sacar coordenadas.</p>}
+                  <p className="font-[family-name:var(--font-josefin)] text-[10px] text-[#A8A29E] uppercase tracking-widest mb-2">Copiá esta flecha de conexión (Hotspot):</p>
+                  {clickedCoords3D ? <code className="bg-[#1C1917] p-3 text-xs text-green-400 font-mono w-full block border border-[#292524] whitespace-pre-wrap">{`{ pitch: ${clickedCoords3D.pitch}, yaw: ${clickedCoords3D.yaw}, targetId: 'ID_DESTINO', text: 'Ir a...' }`}</code> : <p className="text-xs text-white">Clic en la pared/calle para sacar coordenadas.</p>}
                 </>
               )}
               {(viewState === '2D_MACRO' || viewState === '2D_MICRO') && (
@@ -244,8 +305,8 @@ export default function InteractiveMap() {
                   <div className="flex flex-col sm:flex-row gap-2 w-full mt-3">
                     {currentDrawing.length > 0 && (
                       <>
-                        <button onClick={() => setCurrentDrawing([])} className="flex-1 bg-red-900/40 text-red-400 px-3 py-2 text-[10px] uppercase">Limpiar</button>
-                        <button onClick={finishDrawing} className="flex-1 bg-green-600 text-white px-3 py-2 text-[10px] uppercase font-bold">Cerrar Polígono</button>
+                        <button onClick={() => setCurrentDrawing([])} className="flex-1 bg-red-900/40 text-red-400 px-3 py-2 text-[10px] uppercase border border-red-900">Limpiar</button>
+                        <button onClick={finishDrawing} className="flex-1 bg-green-600 text-white px-3 py-2 text-[10px] uppercase font-bold border border-green-500">Cerrar Polígono</button>
                       </>
                     )}
                     {currentDrawing.length === 0 && tempPolygons.length > 0 && (
@@ -262,7 +323,6 @@ export default function InteractiveMap() {
         <div className={`absolute inset-0 w-full h-full transition-opacity duration-300 z-20 flex items-center justify-center bg-[#1C1917] ${(viewState === '2D_MACRO' || viewState === '2D_MICRO') ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           <div className={`relative inline-block max-w-full max-h-full ${isAdminActive ? 'cursor-crosshair' : ''}`}>
             
-            {/* LA IMAGEN CAMBIA SEGÚN EL NIVEL DEL EMBUDO */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img 
               src={viewState === '2D_MACRO' ? activeZone?.macroImage : activeSubZone?.microImage || '/placeholder.webp'} 
@@ -273,24 +333,20 @@ export default function InteractiveMap() {
             <div className="absolute inset-0 z-30" onClick={handle2DClick}>
               <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
                 
-                {/* DIBUJA MANZANAS EN VISTA MACRO */}
                 {viewState === '2D_MACRO' && activeZone?.subZones?.map(sub => (
-                  <polygon key={sub.id} points={sub.polygon} onClick={(e) => { e.stopPropagation(); if (!isAdminActive) { setActiveSubZone(sub); setViewState('2D_MICRO'); } }} className="pointer-events-auto cursor-pointer stroke-[#FAFAF9] stroke-[0.2] fill-white opacity-20 hover:opacity-50 transition-all" />
+                  <polygon key={sub.id} points={sub.polygon} onClick={(e) => { e.stopPropagation(); if (!isAdminActive) { setActiveSubZone(sub); changeView('2D_MICRO'); } }} className="pointer-events-auto cursor-pointer stroke-[#FAFAF9] stroke-[0.2] fill-white opacity-20 hover:opacity-50 transition-all" />
                 ))}
 
-                {/* DIBUJA LOTES EN VISTA MICRO */}
                 {viewState === '2D_MICRO' && activeSubZone?.lots?.map(lot => (
                   <polygon key={lot.id} points={lot.points} onClick={(e) => { e.stopPropagation(); if (!isAdminActive) setActiveLot(lot); }} className={`pointer-events-auto cursor-pointer stroke-[#FAFAF9] stroke-[0.2] transition-all ${activeLot?.id === lot.id ? 'stroke-[0.6] opacity-80' : 'opacity-40 hover:opacity-70'} ${lot.status === 'disponible' ? 'fill-green-500' : 'fill-red-500'}`} />
                 ))}
 
-                {/* Polígonos y lápiz del Admin */}
                 {tempPolygons.map((poly) => (
                   <polygon key={poly.id} points={poly.polygon || poly.points} className="fill-blue-500 opacity-50 stroke-white stroke-[0.3]" />
                 ))}
                 {currentDrawing.length > 0 && <polyline points={currentDrawing.map(p => `${p.x},${p.y}`).join(' ')} className="fill-none stroke-yellow-400 stroke-[0.5] stroke-dasharray-1 animate-pulse" />}
               </svg>
 
-              {/* Puntitos solo para los Lotes (Vista Micro) */}
               {viewState === '2D_MICRO' && activeSubZone?.lots?.map(lot => (
                 <div key={`${lot.id}-dot`} className="absolute w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white z-40 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_5px_rgba(0,0,0,1)] pointer-events-none" style={{ top: `${lot.center.y}%`, left: `${lot.center.x}%` }} />
               ))}
@@ -300,7 +356,7 @@ export default function InteractiveMap() {
             </div>
           </div>
 
-          {/* PANEL DE ESPECIFICACIONES (Solo en Micro) */}
+          {/* PANEL DE ESPECIFICACIONES CON EL BOTÓN DEL TOUR DE LA CASA */}
           <AnimatePresence>
             {viewState === '2D_MICRO' && (
               <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ opacity: 0, x: 50 }} className="absolute right-0 md:right-6 top-[auto] bottom-0 md:top-1/2 md:bottom-[auto] md:-translate-y-1/2 w-full md:w-80 bg-black/95 backdrop-blur-md border-t md:border border-[#292524] p-6 shadow-2xl z-40">
@@ -311,6 +367,14 @@ export default function InteractiveMap() {
                     <ul className="space-y-3 border-t border-[#292524] pt-4 mb-6">
                       <li className="flex justify-between font-[family-name:var(--font-josefin)] text-sm text-[#A8A29E]"><span>Superficie:</span> <span className="text-[#FAFAF9]">{activeLot.size}</span></li>
                     </ul>
+                    
+                    {/* SI EL LOTE TIENE HABITACIONES, MUESTRA EL BOTÓN */}
+                    {activeLot.houseTour && activeLot.houseTour.length > 0 && (
+                      <button onClick={() => { setActiveRoom(activeLot.houseTour![0]); changeView('360_HOUSE'); }} className="w-full text-center bg-[#C9A962] text-[#0C0A09] py-3 text-[10px] uppercase font-bold hover:bg-white transition-colors mb-3 shadow-lg">
+                        Ver Interior Casa Modelo
+                      </button>
+                    )}
+
                     <button onClick={() => setActiveLot(null)} className="w-full text-center border border-[#C9A962] text-[#C9A962] py-3 text-[10px] uppercase font-bold hover:bg-[#C9A962] hover:text-[#0C0A09] transition-colors">Volver a Info de Manzana</button>
                   </div>
                 ) : (
@@ -329,8 +393,8 @@ export default function InteractiveMap() {
           </AnimatePresence>
         </div>
 
-        {/* ── RENDER 360 (Cielo o Calle) ── */}
-        <div className={`absolute inset-0 w-full h-full transition-opacity duration-300 z-10 ${(viewState === '360_GLOBAL' || viewState === '360_STREET') ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        {/* ── RENDER 360 (Cielo, Calle o Casa) ── */}
+        <div className={`absolute inset-0 w-full h-full transition-opacity duration-300 z-10 ${is360View ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
           <div ref={containerRef} className="w-full h-full" />
         </div>
 
