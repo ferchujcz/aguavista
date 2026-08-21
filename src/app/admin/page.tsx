@@ -32,7 +32,6 @@ export default function AdminPage() {
   
   // ESTADOS DE CAPTURA 360 POR CLIC DIRECTO
   const [isAddingHotspot, setIsAddingHotspot] = useState(false);
-  const isAddingRef = useRef(false); // Referencia para el evento de Pannellum
   const [hotspotModal, setHotspotModal] = useState<{pitch: number, yaw: number} | null>(null);
   const [hotspotTarget, setHotspotTarget] = useState('');
   const [hotspotText, setHotspotText] = useState('Ir a...');
@@ -61,9 +60,6 @@ export default function AdminPage() {
   };
 
   useEffect(() => { if (isAuthenticated) fetchData(); }, [isAuthenticated]);
-
-  // Sincronizar el estado visual con la referencia para el evento de clic
-  useEffect(() => { isAddingRef.current = isAddingHotspot; }, [isAddingHotspot]);
 
   // ── MOTOR 360 DEL ADMIN ──
   useEffect(() => {
@@ -94,25 +90,9 @@ export default function AdminPage() {
 
       if (viewerRef.current) viewerRef.current.destroy();
 
+      // Carga limpia del visor (Sin eventos de clic interrumpiendo)
       viewerRef.current = pnl.viewer(containerRef.current, {
         type: 'equirectangular', panorama: imageToLoad, autoLoad: true, showZoomCtrl: true, showFullscreenCtrl: false, hotSpots: hotSpots
-      });
-
-      // ── LA MAGIA DEL CLIC DIRECTO ──
-      viewerRef.current.on('mousedown', (event: MouseEvent) => {
-        // Solo actúa si tocaste el botón de "Agregar Punto" antes
-        if (!isAddingRef.current) return; 
-        
-        const coords = viewerRef.current.mouseEventToCoords(event);
-        const pitch = coords[0].toFixed(2);
-        const yaw = coords[1].toFixed(2);
-        
-        setHotspotModal({ pitch: parseFloat(pitch), yaw: parseFloat(yaw) });
-        setIsAddingHotspot(false); // Apagamos el modo agregar
-        
-        // Ponemos una marca temporal para que veas dónde hiciste clic
-        try { viewerRef.current.removeHotSpot('temp-mark'); } catch(e) {}
-        viewerRef.current.addHotSpot({ id: 'temp-mark', pitch: parseFloat(pitch), yaw: parseFloat(yaw), type: 'info', text: 'Nuevo Punto' });
       });
     };
 
@@ -128,7 +108,7 @@ export default function AdminPage() {
     if (zonas.length === 0) return alert("Debes crear al menos una manzana primero.");
     const { error } = await supabase.from('zonas').update({ imagen_360: globalConfig.imagen_360, imagen_2d: globalConfig.imagen_2d }).eq('id', zonas[0].id);
     if (error) alert("Error: " + error.message);
-    else alert("Imágenes actualizadas. Recordá subir los archivos a tu carpeta public.");
+    else alert("Imágenes actualizadas.");
   };
 
   // ── LÓGICAS CRUD 2D ──
@@ -158,15 +138,14 @@ export default function AdminPage() {
     if(!confirm("¿Borrar Manzana y sus lotes?")) return;
     setZonas(prev => prev.filter(z => z.id !== id));
     if (activeZona?.id === id) setActiveZona(null);
-    const { error } = await supabase.from('zonas').delete().eq('id', id);
-    if (error) { alert("Error al borrar: " + error.message); fetchData(); }
+    await supabase.from('zonas').delete().eq('id', id); fetchData();
   };
 
   const deleteLote = async (id: string) => { 
     if(!confirm("¿Borrar este lote?")) return;
     setLotes(prev => prev.filter(l => l.id !== id));
     setEditingLote(null);
-    await supabase.from('lotes').delete().eq('id', id);
+    await supabase.from('lotes').delete().eq('id', id); fetchData();
   };
 
   const openEditor = (lot: any) => { setEditingLote({ ...lot, featuresRaw: lot.features ? lot.features.join('\n') : '' }); };
@@ -177,6 +156,7 @@ export default function AdminPage() {
     alert("Lote actualizado."); setEditingLote(null); fetchData();
   };
 
+  // ── LOGICAS 360 HOTSPOTS ──
   const saveVisualHotspot = async () => {
     if (!hotspotModal) return;
     if (mode360 === 'GLOBAL') {
@@ -210,7 +190,6 @@ export default function AdminPage() {
     if(activeRoom360?.id === roomId) setActiveRoom360(null); fetchData();
   };
 
-  // ── LOGIN SCREEN ──
   if (!isAuthenticated) return (
     <div className="min-h-screen bg-[#0C0A09] flex items-center justify-center p-4">
       <form onSubmit={handleLogin} className="bg-[#1C1917] p-8 border border-[#292524] w-full max-w-sm text-center shadow-2xl">
@@ -235,7 +214,6 @@ export default function AdminPage() {
           {adminTab === 'CONFIG' && (
             <div className="animate-in fade-in">
               <h3 className="text-[10px] uppercase tracking-widest text-[#C9A962] mb-3 font-bold">Imágenes Principales</h3>
-              <p className="text-xs text-gray-400 mb-4">La imagen 360 debe ser Equirectangular (el doble de ancha que de alta) para que no queden franjas negras.</p>
               
               <label className="block text-[10px] text-gray-400 uppercase mb-1">URL Imagen Aérea 2D</label>
               <input type="text" value={globalConfig.imagen_2d} onChange={e => setGlobalConfig({...globalConfig, imagen_2d: e.target.value})} className="w-full bg-black p-3 mb-4 text-xs text-white border border-[#292524] outline-none" />
@@ -243,7 +221,7 @@ export default function AdminPage() {
               <label className="block text-[10px] text-gray-400 uppercase mb-1">URL Cielo 360</label>
               <input type="text" value={globalConfig.imagen_360} onChange={e => setGlobalConfig({...globalConfig, imagen_360: e.target.value})} className="w-full bg-black p-3 mb-6 text-xs text-white border border-[#292524] outline-none" />
               
-              <button onClick={updateGlobalImages} className="w-full bg-green-600 text-white font-bold uppercase text-[10px] py-3 tracking-widest">Actualizar Imágenes</button>
+              <button onClick={updateGlobalImages} className="w-full bg-green-600 text-white font-bold uppercase text-[10px] py-3 tracking-widest hover:bg-green-500">Actualizar Imágenes</button>
             </div>
           )}
 
@@ -270,7 +248,7 @@ export default function AdminPage() {
                         {lotes.filter(l => l.zona_id === activeZona.id).map(lot => (
                           <div key={lot.id} className="flex gap-2 items-center bg-black border border-[#292524] p-2">
                             <button onClick={() => { setEditingLote(lot); openEditor(lot); }} className="flex-1 text-left text-xs text-gray-300 hover:text-white px-2 py-1">{lot.number} <span className={lot.status === 'disponible' ? 'text-green-500' : 'text-red-500'}>({lot.status})</span></button>
-                            <button onClick={() => deleteLote(lot.id)} className="text-red-500 px-2 py-1 hover:bg-red-900/30 rounded">X</button>
+                            <button onClick={() => deleteLote(lot.id)} className="text-red-500 px-2 py-1 hover:bg-red-900/30 rounded border border-red-900/50 hover:text-white">X</button>
                           </div>
                         ))}
                       </div>
@@ -287,7 +265,7 @@ export default function AdminPage() {
                     <input type="text" value={editingLote.size} onChange={e => setEditingLote({...editingLote, size: e.target.value})} className="w-full bg-[#1C1917] p-2.5 text-sm outline-none border border-[#292524] text-white" placeholder="Mts2" />
                   </div>
                   <textarea value={editingLote.featuresRaw} onChange={e => setEditingLote({...editingLote, featuresRaw: e.target.value})} className="w-full bg-[#1C1917] p-2.5 mb-6 text-xs h-24 outline-none border border-[#292524] text-white" placeholder="Detalles (Piscina, Quincho)"></textarea>
-                  <button onClick={updateLote} className="w-full bg-blue-600 text-white py-3 uppercase font-bold text-[10px] tracking-widest shadow-lg">Guardar Lote</button>
+                  <button onClick={updateLote} className="w-full bg-blue-600 text-white py-3 uppercase font-bold text-[10px] tracking-widest shadow-lg hover:bg-blue-500">Guardar Lote</button>
                 </div>
               )}
             </>
@@ -311,7 +289,7 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div className="animate-in fade-in">
-                  <select value={activeLote360?.id || ''} onChange={(e) => { setActiveLote360(lotes.find(l => l.id === e.target.value)); setActiveRoom360(null); setIsAddingHotspot(false); }} className="w-full bg-black p-3 text-sm border border-[#292524] text-white outline-none mb-4">
+                  <select value={activeLote360?.id || ''} onChange={(e) => { setActiveLote360(lotes.find(l => l.id === e.target.value)); setActiveRoom360(null); setIsAddingHotspot(false); }} className="w-full bg-black p-3 text-sm border border-[#292524] text-white outline-none mb-4 focus:border-[#C9A962]">
                     <option value="">-- Elegí Lote --</option>
                     {lotes.map(l => <option key={l.id} value={l.id}>{l.number}</option>)}
                   </select>
@@ -357,7 +335,7 @@ export default function AdminPage() {
           {currentDrawing.length > 0 && adminTab === '2D' && (
             <div className="flex gap-3">
               <button onClick={() => setCurrentDrawing([])} className="text-red-400 text-[10px] uppercase font-bold hover:text-red-300">Limpiar</button>
-              <button onClick={saveDrawing} className="bg-green-600 text-white px-4 py-1.5 text-[10px] uppercase font-bold shadow-[0_0_10px_rgba(34,197,94,0.3)]">Guardar Polígono</button>
+              <button onClick={saveDrawing} className="bg-green-600 text-white px-4 py-1.5 text-[10px] uppercase font-bold shadow-[0_0_10px_rgba(34,197,94,0.3)] hover:bg-green-500">Guardar Polígono</button>
             </div>
           )}
         </div>
@@ -383,12 +361,12 @@ export default function AdminPage() {
           {/* VISTA 360 */}
           <div className={`absolute inset-0 w-full h-full z-30 ${adminTab === '360' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
              
-             {/* ── BOTÓN PARA ACTIVAR EL CLIC DIRECTO ── */}
+             {/* ── BOTÓN PARA ACTIVAR LA CAPA DE CLIC DIRECTO ── */}
              {adminTab === '360' && !hotspotModal && ((mode360 === 'GLOBAL') || (mode360 === 'HOUSE' && activeRoom360)) && (
-               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center">
                  {isAddingHotspot ? (
                    <div className="bg-blue-600 text-white px-6 py-3 font-bold uppercase text-xs tracking-widest shadow-[0_0_30px_rgba(37,99,235,0.8)] animate-pulse rounded flex flex-col items-center gap-2">
-                     <span>🎯 Hacé clic en la imagen donde querés la flecha</span>
+                     <span>🎯 Hacé clic en la imagen (izquierdo) donde querés la flecha</span>
                      <button onClick={() => setIsAddingHotspot(false)} className="text-[9px] bg-black/30 px-3 py-1 hover:bg-black/50">Cancelar</button>
                    </div>
                  ) : (
@@ -399,14 +377,32 @@ export default function AdminPage() {
                </div>
              )}
 
-             <div ref={containerRef} className={`w-full h-full bg-[#1C1917] ${isAddingHotspot ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`} />
+             <div ref={containerRef} className="w-full h-full bg-[#1C1917]" />
+             
+             {/* ── EL VIDRIO INVISIBLE QUE ATRAPA TU CLIC EXACTO ── */}
+             {isAddingHotspot && (
+               <div 
+                 className="absolute inset-0 z-40 cursor-crosshair"
+                 onContextMenu={(e) => e.preventDefault()} // Bloquea el clic derecho
+                 onClick={(e) => {
+                   if (!viewerRef.current) return;
+                   const coords = viewerRef.current.mouseEventToCoords(e.nativeEvent);
+                   if (coords) {
+                     setHotspotModal({ pitch: coords[0], yaw: coords[1] });
+                     setIsAddingHotspot(false);
+                     try { viewerRef.current.removeHotSpot('temp-mark'); } catch(err) {}
+                     viewerRef.current.addHotSpot({ id: 'temp-mark', pitch: coords[0], yaw: coords[1], type: 'info', text: 'Nuevo Punto' });
+                   }
+                 }}
+               />
+             )}
              
              <AnimatePresence>
                 {hotspotModal && (
                   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1C1917] p-6 border border-[#C9A962] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 w-80">
                     <h4 className="text-[#C9A962] font-bold uppercase text-xs mb-4 text-center tracking-widest">{mode360 === 'GLOBAL' ? 'Asignar Punto en el Cielo' : 'Crear Flecha 360'}</h4>
-                    {mode360 === 'HOUSE' && <input type="text" value={hotspotText} onChange={e => setHotspotText(e.target.value)} placeholder="Texto flecha (Ej: Ir al patio)" className="w-full bg-black p-2.5 text-xs text-white outline-none border border-[#292524] mb-4" />}
-                    <select value={hotspotTarget} onChange={e => setHotspotTarget(e.target.value)} className="w-full bg-black p-2.5 text-xs text-white outline-none border border-[#292524] mb-6">
+                    {mode360 === 'HOUSE' && <input type="text" value={hotspotText} onChange={e => setHotspotText(e.target.value)} placeholder="Texto flecha (Ej: Ir al patio)" className="w-full bg-black p-2.5 text-xs text-white outline-none border border-[#292524] focus:border-[#C9A962] mb-4" />}
+                    <select value={hotspotTarget} onChange={e => setHotspotTarget(e.target.value)} className="w-full bg-black p-2.5 text-xs text-white outline-none border border-[#292524] focus:border-[#C9A962] mb-6">
                       <option value="">-- Destino --</option>
                       {mode360 === 'GLOBAL' ? zonas.filter(z => !z.pitch).map(z => <option key={z.id} value={z.id}>{z.title}</option>) : activeLote360.housetour.filter((r:any) => r.id !== activeRoom360.id).map((r:any) => <option key={r.id} value={r.id}>{r.name}</option>)}
                     </select>
@@ -417,6 +413,14 @@ export default function AdminPage() {
                   </motion.div>
                 )}
               </AnimatePresence>
+          </div>
+
+          <div className={`absolute inset-0 w-full h-full z-40 bg-black flex items-center justify-center ${adminTab === 'CONFIG' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+             <div className="text-center">
+               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C9A962" strokeWidth="1" className="mx-auto mb-4"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+               <h2 className="text-[#C9A962] font-[family-name:var(--font-cormorant)] text-2xl">Modo Configuración Activo</h2>
+               <p className="text-gray-500 text-xs uppercase tracking-widest mt-2">Visores en pausa para ahorrar memoria</p>
+             </div>
           </div>
 
         </div>
