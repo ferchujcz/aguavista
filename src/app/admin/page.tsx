@@ -14,8 +14,6 @@ export default function AdminPage() {
   
   const [zonas, setZonas] = useState<any[]>([]);
   const [lotes, setLotes] = useState<any[]>([]);
-  
-  // ESTADOS GLOBALES (Imágenes Principales)
   const [globalConfig, setGlobalConfig] = useState({ imagen_360: '/exterior.jpg', imagen_2d: '/areo.jpg' });
 
   // ESTADOS 2D
@@ -47,6 +45,8 @@ export default function AdminPage() {
     if (zData && zData.length > 0) {
       setZonas(zData);
       setGlobalConfig({ imagen_360: zData[0].imagen_360 || '/exterior.jpg', imagen_2d: zData[0].imagen_2d || '/areo.jpg' });
+    } else {
+      setZonas([]);
     }
     if (lData) {
       setLotes(lData);
@@ -60,7 +60,7 @@ export default function AdminPage() {
 
   useEffect(() => { if (isAuthenticated) fetchData(); }, [isAuthenticated]);
 
-  // ── MOTOR 360 DEL ADMIN (CORREGIDO Y CON MARCA VISUAL) ──
+  // ── MOTOR 360 DEL ADMIN ──
   useEffect(() => {
     if (adminTab !== '360' || !isAuthenticated) return;
     if (mode360 === 'HOUSE' && !activeRoom360) return;
@@ -87,18 +87,6 @@ export default function AdminPage() {
       viewerRef.current = pnl.viewer(containerRef.current, {
         type: 'equirectangular', panorama: imageToLoad, autoLoad: true, showZoomCtrl: true, showFullscreenCtrl: false, hotSpots: hotSpots
       });
-
-      viewerRef.current.on('mousedown', (event: MouseEvent) => {
-        const coords = viewerRef.current.mouseEventToCoords(event);
-        const pitch = coords[0].toFixed(2);
-        const yaw = coords[1].toFixed(2);
-        
-        setHotspotModal({ pitch: parseFloat(pitch), yaw: parseFloat(yaw) });
-        
-        // BORRAR MARCA ANTERIOR Y CREAR NUEVA MARCA VISUAL EN EL CLIC
-        try { viewerRef.current.removeHotSpot('temp-mark'); } catch(e) {}
-        viewerRef.current.addHotSpot({ id: 'temp-mark', pitch: parseFloat(pitch), yaw: parseFloat(yaw), type: 'info', text: 'Punto Seleccionado' });
-      });
     };
 
     if (!(window as any).pannellum) {
@@ -107,14 +95,22 @@ export default function AdminPage() {
     } else { setTimeout(initPannellum, 100); }
 
     return () => { if (viewerRef.current) { viewerRef.current.destroy(); viewerRef.current = null; } };
-  }, [adminTab, mode360, activeRoom360, zonas, globalConfig.imagen_360]);
+  }, [adminTab, mode360, activeRoom360, zonas, globalConfig.imagen_360, isAuthenticated]);
+
+  // ── FUNCIÓN DE CAPTURA CON MIRA CENTRAL ──
+  const captureCenterHotspot = () => {
+    if (!viewerRef.current) return;
+    const pitch = viewerRef.current.getPitch().toFixed(2);
+    const yaw = viewerRef.current.getYaw().toFixed(2);
+    setHotspotModal({ pitch: parseFloat(pitch), yaw: parseFloat(yaw) });
+  };
 
   // ── ACTUALIZAR CONFIGURACIÓN GLOBAL ──
   const updateGlobalImages = async () => {
     if (zonas.length === 0) return alert("Debes crear al menos una manzana primero.");
     const { error } = await supabase.from('zonas').update({ imagen_360: globalConfig.imagen_360, imagen_2d: globalConfig.imagen_2d }).eq('id', zonas[0].id);
     if (error) alert("Error: " + error.message);
-    else alert("Imágenes principales actualizadas.");
+    else alert("Imágenes actualizadas. Recordá subir los archivos a tu carpeta public.");
   };
 
   // ── LÓGICAS CRUD ──
@@ -129,7 +125,9 @@ export default function AdminPage() {
     const pointsStr = currentDrawing.map(p => `${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(' ');
     
     if (mode === 'DRAW_ZONA') {
-      await supabase.from('zonas').insert({ id: `zona-${Date.now()}`, title: `Manzana ${zonas.length + 1}`, polygon: pointsStr, microimage: '/areozona1.jpg', imagen_360: globalConfig.imagen_360, imagen_2d: globalConfig.imagen_2d });
+      const newZona = { id: `zona-${Date.now()}`, title: `Manzana ${zonas.length + 1}`, polygon: pointsStr, microimage: '/areozona1.jpg', imagen_360: globalConfig.imagen_360, imagen_2d: globalConfig.imagen_2d };
+      setZonas([...zonas, newZona]); // Optimista
+      await supabase.from('zonas').insert(newZona);
     } else if (mode === 'DRAW_LOTE' && activeZona) {
       const cX = (currentDrawing.reduce((a, p) => a + p.x, 0) / currentDrawing.length).toFixed(2);
       const cY = (currentDrawing.reduce((a, p) => a + p.y, 0) / currentDrawing.length).toFixed(2);
@@ -138,8 +136,22 @@ export default function AdminPage() {
     setCurrentDrawing([]); setMode('VIEW'); fetchData();
   };
 
-  const deleteLote = async (id: string) => { if(confirm("¿Borrar este lote?")) { await supabase.from('lotes').delete().eq('id', id); setEditingLote(null); fetchData(); } };
-  const deleteZona = async (id: string) => { if(confirm("¿Borrar Manzana y sus lotes?")) { await supabase.from('zonas').delete().eq('id', id); setActiveZona(null); fetchData(); } };
+  // BORRADO OPTIMISTA (Instantáneo visualmente)
+  const deleteZona = async (id: string) => { 
+    if(!confirm("¿Borrar Manzana y sus lotes?")) return;
+    setZonas(prev => prev.filter(z => z.id !== id));
+    if (activeZona?.id === id) setActiveZona(null);
+    const { error } = await supabase.from('zonas').delete().eq('id', id);
+    if (error) { alert("Error al borrar: " + error.message); fetchData(); }
+  };
+
+  const deleteLote = async (id: string) => { 
+    if(!confirm("¿Borrar este lote?")) return;
+    setLotes(prev => prev.filter(l => l.id !== id));
+    setEditingLote(null);
+    await supabase.from('lotes').delete().eq('id', id);
+  };
+
   const openEditor = (lot: any) => { setEditingLote({ ...lot, featuresRaw: lot.features ? lot.features.join('\n') : '' }); };
 
   const updateLote = async () => {
@@ -179,14 +191,13 @@ export default function AdminPage() {
     if(activeRoom360?.id === roomId) setActiveRoom360(null); fetchData();
   };
 
-  // ── LOGIN SCREEN ──
   if (!isAuthenticated) return (
     <div className="min-h-screen bg-[#0C0A09] flex items-center justify-center p-4">
       <form onSubmit={handleLogin} className="bg-[#1C1917] p-8 border border-[#292524] w-full max-w-sm text-center shadow-2xl">
         <h1 className="text-[#C9A962] text-2xl mb-2 font-[family-name:var(--font-cormorant)]">Centro de Mando</h1>
         <p className="text-[10px] text-gray-500 mb-6 uppercase tracking-widest">Panel de Control</p>
-        <input type="password" value={pinInput} onChange={e => setPinInput(e.target.value)} className="w-full bg-black text-white p-3 mb-4 text-center tracking-[1em] border border-[#292524]" placeholder="****" />
-        <button type="submit" className="w-full bg-[#C9A962] text-black font-bold py-3 uppercase text-xs tracking-widest">Ingresar</button>
+        <input type="password" value={pinInput} onChange={e => setPinInput(e.target.value)} className="w-full bg-black text-white p-3 mb-4 text-center tracking-[1em] border border-[#292524] outline-none focus:border-[#C9A962]" placeholder="****" />
+        <button type="submit" className="w-full bg-[#C9A962] text-black font-bold py-3 uppercase text-xs tracking-widest hover:bg-white transition-colors">Ingresar</button>
       </form>
     </div>
   );
@@ -265,8 +276,8 @@ export default function AdminPage() {
           {adminTab === '360' && (
             <>
               <div className="flex bg-[#1C1917] border border-[#292524] mb-6 p-1 rounded">
-                <button onClick={() => {setMode360('GLOBAL'); setHotspotModal(null);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'GLOBAL' ? 'bg-[#C9A962] text-black' : 'text-gray-400'}`}>Cielo General</button>
-                <button onClick={() => {setMode360('HOUSE'); setHotspotModal(null);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'HOUSE' ? 'bg-[#C9A962] text-black' : 'text-gray-400'}`}>Interior Casas</button>
+                <button onClick={() => {setMode360('GLOBAL'); setHotspotModal(null);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'GLOBAL' ? 'bg-[#C9A962] text-black' : 'text-gray-400 hover:text-white'}`}>Cielo General</button>
+                <button onClick={() => {setMode360('HOUSE'); setHotspotModal(null);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'HOUSE' ? 'bg-[#C9A962] text-black' : 'text-gray-400 hover:text-white'}`}>Interior Casas</button>
               </div>
 
               {mode360 === 'GLOBAL' ? (
@@ -349,7 +360,27 @@ export default function AdminPage() {
           </div>
 
           <div className={`absolute inset-0 w-full h-full z-10 ${adminTab === '360' || adminTab === 'CONFIG' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-             <div ref={containerRef} className="w-full h-full cursor-crosshair" />
+             {/* ── MIRA CENTRAL PROFESIONAL PARA CAPTURA 360 ── */}
+             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40">
+                <svg width="40" height="40" viewBox="0 0 40 40">
+                   <circle cx="20" cy="20" r="2" fill="#C9A962" />
+                   <circle cx="20" cy="20" r="12" fill="none" stroke="#C9A962" strokeWidth="2" strokeDasharray="4 4" />
+                   <line x1="20" y1="0" x2="20" y2="8" stroke="#C9A962" strokeWidth="2" />
+                   <line x1="20" y1="32" x2="20" y2="40" stroke="#C9A962" strokeWidth="2" />
+                   <line x1="0" y1="20" x2="8" y2="20" stroke="#C9A962" strokeWidth="2" />
+                   <line x1="32" y1="20" x2="40" y2="20" stroke="#C9A962" strokeWidth="2" />
+                </svg>
+             </div>
+             
+             {/* ── BOTÓN GIGANTE DE CAPTURA ── */}
+             {adminTab === '360' && !hotspotModal && ((mode360 === 'GLOBAL') || (mode360 === 'HOUSE' && activeRoom360)) && (
+               <button onClick={captureCenterHotspot} className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#C9A962] text-black px-6 py-3 font-bold uppercase text-xs tracking-widest shadow-[0_0_20px_rgba(201,169,98,0.5)] hover:bg-white transition-all hover:scale-105">
+                 📍 Fijar Punto Aquí
+               </button>
+             )}
+
+             <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+             
              <AnimatePresence>
                 {hotspotModal && (
                   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1C1917] p-6 border border-[#C9A962] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 w-80">
@@ -360,8 +391,8 @@ export default function AdminPage() {
                       {mode360 === 'GLOBAL' ? zonas.filter(z => !z.pitch).map(z => <option key={z.id} value={z.id}>{z.title}</option>) : activeLote360.housetour.filter((r:any) => r.id !== activeRoom360.id).map((r:any) => <option key={r.id} value={r.id}>{r.name}</option>)}
                     </select>
                     <div className="flex gap-2">
-                      <button onClick={() => { setHotspotModal(null); try{ viewerRef.current.removeHotSpot('temp-mark'); }catch(e){} }} className="flex-1 bg-transparent text-gray-400 border border-gray-600 text-[10px] uppercase font-bold py-2 hover:text-white">Cancelar</button>
-                      <button onClick={saveVisualHotspot} className="flex-1 bg-[#C9A962] text-black text-[10px] uppercase font-bold py-2 shadow-lg">Guardar</button>
+                      <button onClick={() => setHotspotModal(null)} className="flex-1 bg-transparent text-gray-400 border border-gray-600 text-[10px] uppercase font-bold py-2 hover:text-white">Cancelar</button>
+                      <button onClick={saveVisualHotspot} className="flex-1 bg-[#C9A962] text-black text-[10px] uppercase font-bold py-2 shadow-lg hover:bg-white">Guardar</button>
                     </div>
                   </motion.div>
                 )}
