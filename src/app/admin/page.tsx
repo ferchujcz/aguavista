@@ -30,6 +30,9 @@ export default function AdminPage() {
   const [newRoomImg, setNewRoomImg] = useState('');
   const [newRoomName, setNewRoomName] = useState('');
   
+  // ESTADOS DE CAPTURA 360 POR CLIC DIRECTO
+  const [isAddingHotspot, setIsAddingHotspot] = useState(false);
+  const isAddingRef = useRef(false); // Referencia para el evento de Pannellum
   const [hotspotModal, setHotspotModal] = useState<{pitch: number, yaw: number} | null>(null);
   const [hotspotTarget, setHotspotTarget] = useState('');
   const [hotspotText, setHotspotText] = useState('Ir a...');
@@ -45,9 +48,8 @@ export default function AdminPage() {
     if (zData && zData.length > 0) {
       setZonas(zData);
       setGlobalConfig({ imagen_360: zData[0].imagen_360 || '/exterior.jpg', imagen_2d: zData[0].imagen_2d || '/areo.jpg' });
-    } else {
-      setZonas([]);
-    }
+    } else { setZonas([]); }
+    
     if (lData) {
       setLotes(lData);
       if (activeLote360) {
@@ -60,9 +62,11 @@ export default function AdminPage() {
 
   useEffect(() => { if (isAuthenticated) fetchData(); }, [isAuthenticated]);
 
+  // Sincronizar el estado visual con la referencia para el evento de clic
+  useEffect(() => { isAddingRef.current = isAddingHotspot; }, [isAddingHotspot]);
+
   // ── MOTOR 360 DEL ADMIN ──
   useEffect(() => {
-    // Si no estamos en la pestaña 360, destruimos el visor para que no cause bugs
     if (adminTab !== '360' || !isAuthenticated) {
       if (viewerRef.current) { viewerRef.current.destroy(); viewerRef.current = null; }
       return;
@@ -91,9 +95,24 @@ export default function AdminPage() {
       if (viewerRef.current) viewerRef.current.destroy();
 
       viewerRef.current = pnl.viewer(containerRef.current, {
-        type: 'equirectangular', panorama: imageToLoad, autoLoad: true, showZoomCtrl: true, showFullscreenCtrl: false, hotSpots: hotSpots,
-        autoLoadCallback: () => console.log('360 Cargado correctamente'),
-        // Si la imagen falla (ej: 404), Pannellum tira error interno.
+        type: 'equirectangular', panorama: imageToLoad, autoLoad: true, showZoomCtrl: true, showFullscreenCtrl: false, hotSpots: hotSpots
+      });
+
+      // ── LA MAGIA DEL CLIC DIRECTO ──
+      viewerRef.current.on('mousedown', (event: MouseEvent) => {
+        // Solo actúa si tocaste el botón de "Agregar Punto" antes
+        if (!isAddingRef.current) return; 
+        
+        const coords = viewerRef.current.mouseEventToCoords(event);
+        const pitch = coords[0].toFixed(2);
+        const yaw = coords[1].toFixed(2);
+        
+        setHotspotModal({ pitch: parseFloat(pitch), yaw: parseFloat(yaw) });
+        setIsAddingHotspot(false); // Apagamos el modo agregar
+        
+        // Ponemos una marca temporal para que veas dónde hiciste clic
+        try { viewerRef.current.removeHotSpot('temp-mark'); } catch(e) {}
+        viewerRef.current.addHotSpot({ id: 'temp-mark', pitch: parseFloat(pitch), yaw: parseFloat(yaw), type: 'info', text: 'Nuevo Punto' });
       });
     };
 
@@ -105,20 +124,14 @@ export default function AdminPage() {
     return () => { if (viewerRef.current) { viewerRef.current.destroy(); viewerRef.current = null; } };
   }, [adminTab, mode360, activeRoom360, zonas, globalConfig.imagen_360, isAuthenticated]);
 
-  const captureCenterHotspot = () => {
-    if (!viewerRef.current) return;
-    const pitch = viewerRef.current.getPitch().toFixed(2);
-    const yaw = viewerRef.current.getYaw().toFixed(2);
-    setHotspotModal({ pitch: parseFloat(pitch), yaw: parseFloat(yaw) });
-  };
-
   const updateGlobalImages = async () => {
     if (zonas.length === 0) return alert("Debes crear al menos una manzana primero.");
     const { error } = await supabase.from('zonas').update({ imagen_360: globalConfig.imagen_360, imagen_2d: globalConfig.imagen_2d }).eq('id', zonas[0].id);
-    if (error) alert("Error: " + error.message); else alert("Imágenes actualizadas. Recordá subir los archivos a tu carpeta public.");
+    if (error) alert("Error: " + error.message);
+    else alert("Imágenes actualizadas. Recordá subir los archivos a tu carpeta public.");
   };
 
-  // ── LÓGICAS CRUD ──
+  // ── LÓGICAS CRUD 2D ──
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (mode === 'VIEW') return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -183,18 +196,21 @@ export default function AdminPage() {
     const updatedTour = activeLote360.housetour.map((r:any) => r.id === roomId ? { ...r, hotspots: r.hotspots.filter((h:any) => h.targetId !== targetId) } : r);
     await supabase.from('lotes').update({ housetour: updatedTour }).eq('id', activeLote360.id); fetchData();
   };
+  
   const addRoom = async () => {
     if (!newRoomName || !newRoomImg || !activeLote360) return;
     const newRoom = { id: newRoomName.toLowerCase().replace(/\s+/g, '-'), name: newRoomName, image: newRoomImg, hotspots: [] };
     await supabase.from('lotes').update({ housetour: [...(activeLote360.housetour || []), newRoom] }).eq('id', activeLote360.id);
     setNewRoomName(''); setNewRoomImg(''); fetchData();
   };
+  
   const deleteRoom = async (roomId: string) => {
     if(!confirm("¿Borrar habitación?")) return;
     await supabase.from('lotes').update({ housetour: activeLote360.housetour.filter((r:any) => r.id !== roomId) }).eq('id', activeLote360.id);
     if(activeRoom360?.id === roomId) setActiveRoom360(null); fetchData();
   };
 
+  // ── LOGIN SCREEN ──
   if (!isAuthenticated) return (
     <div className="min-h-screen bg-[#0C0A09] flex items-center justify-center p-4">
       <form onSubmit={handleLogin} className="bg-[#1C1917] p-8 border border-[#292524] w-full max-w-sm text-center shadow-2xl">
@@ -210,16 +226,16 @@ export default function AdminPage() {
     <div className="min-h-screen flex flex-col md:flex-row bg-[#0C0A09] text-white overflow-hidden">
       <aside className="w-full md:w-[400px] bg-[#1C1917] border-r border-[#292524] flex flex-col h-screen shrink-0 relative z-50">
         <div className="p-4 border-b border-[#292524] flex gap-2">
-          <button onClick={() => { setAdminTab('2D'); setMode('VIEW'); setHotspotModal(null); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '2D' ? 'bg-blue-600 text-white' : 'bg-black text-gray-400 border border-[#292524]'}`}>Mapeo 2D</button>
-          <button onClick={() => { setAdminTab('360'); setMode('VIEW'); setHotspotModal(null); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '360' ? 'bg-[#C9A962] text-black' : 'bg-black text-gray-400 border border-[#292524]'}`}>Tours 360</button>
-          <button onClick={() => { setAdminTab('CONFIG'); setMode('VIEW'); setHotspotModal(null); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === 'CONFIG' ? 'bg-green-600 text-white' : 'bg-black text-gray-400 border border-[#292524]'}`}>Config</button>
+          <button onClick={() => { setAdminTab('2D'); setMode('VIEW'); setHotspotModal(null); setIsAddingHotspot(false); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '2D' ? 'bg-blue-600 text-white' : 'bg-black text-gray-400 border border-[#292524]'}`}>Mapeo 2D</button>
+          <button onClick={() => { setAdminTab('360'); setMode('VIEW'); setHotspotModal(null); setIsAddingHotspot(false); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '360' ? 'bg-[#C9A962] text-black' : 'bg-black text-gray-400 border border-[#292524]'}`}>Tours 360</button>
+          <button onClick={() => { setAdminTab('CONFIG'); setMode('VIEW'); setHotspotModal(null); setIsAddingHotspot(false); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === 'CONFIG' ? 'bg-green-600 text-white' : 'bg-black text-gray-400 border border-[#292524]'}`}>Config</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
           {adminTab === 'CONFIG' && (
             <div className="animate-in fade-in">
               <h3 className="text-[10px] uppercase tracking-widest text-[#C9A962] mb-3 font-bold">Imágenes Principales</h3>
-              <p className="text-xs text-gray-400 mb-4">Asegurate de incluir la extensión correcta (.jpg, .png, .webp). El 360 debe ser formato equirectangular 2:1.</p>
+              <p className="text-xs text-gray-400 mb-4">La imagen 360 debe ser Equirectangular (el doble de ancha que de alta) para que no queden franjas negras.</p>
               
               <label className="block text-[10px] text-gray-400 uppercase mb-1">URL Imagen Aérea 2D</label>
               <input type="text" value={globalConfig.imagen_2d} onChange={e => setGlobalConfig({...globalConfig, imagen_2d: e.target.value})} className="w-full bg-black p-3 mb-4 text-xs text-white border border-[#292524] outline-none" />
@@ -249,7 +265,7 @@ export default function AdminPage() {
 
                   {activeZona && (
                     <div className="mb-8 animate-in fade-in">
-                      <button onClick={() => setMode('DRAW_LOTE')} className={`w-full py-3 text-[10px] font-bold uppercase mb-3 transition-colors shadow-lg ${mode === 'DRAW_LOTE' ? 'bg-green-600 text-white' : 'bg-green-900/20 border border-green-800 text-green-400'}`}>+ Dibujar Lote en {activeZona.title}</button>
+                      <button onClick={() => setMode('DRAW_LOTE')} className={`w-full py-3 text-[10px] font-bold uppercase mb-3 transition-colors shadow-lg ${mode === 'DRAW_LOTE' ? 'bg-green-600 text-white' : 'bg-green-900/20 border border-green-800 text-green-400'}`}>+ Dibujar Lote Nuevo en {activeZona.title}</button>
                       <div className="flex flex-col gap-2 mt-2">
                         {lotes.filter(l => l.zona_id === activeZona.id).map(lot => (
                           <div key={lot.id} className="flex gap-2 items-center bg-black border border-[#292524] p-2">
@@ -280,8 +296,8 @@ export default function AdminPage() {
           {adminTab === '360' && (
             <>
               <div className="flex bg-[#1C1917] border border-[#292524] mb-6 p-1 rounded">
-                <button onClick={() => {setMode360('GLOBAL'); setHotspotModal(null);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'GLOBAL' ? 'bg-[#C9A962] text-black' : 'text-gray-400 hover:text-white'}`}>Cielo General</button>
-                <button onClick={() => {setMode360('HOUSE'); setHotspotModal(null);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'HOUSE' ? 'bg-[#C9A962] text-black' : 'text-gray-400 hover:text-white'}`}>Interior Casas</button>
+                <button onClick={() => {setMode360('GLOBAL'); setHotspotModal(null); setIsAddingHotspot(false);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'GLOBAL' ? 'bg-[#C9A962] text-black' : 'text-gray-400 hover:text-white'}`}>Cielo General</button>
+                <button onClick={() => {setMode360('HOUSE'); setHotspotModal(null); setIsAddingHotspot(false);}} className={`flex-1 py-2 text-[10px] uppercase font-bold tracking-widest transition-colors ${mode360 === 'HOUSE' ? 'bg-[#C9A962] text-black' : 'text-gray-400 hover:text-white'}`}>Interior Casas</button>
               </div>
 
               {mode360 === 'GLOBAL' ? (
@@ -295,7 +311,7 @@ export default function AdminPage() {
                 </div>
               ) : (
                 <div className="animate-in fade-in">
-                  <select value={activeLote360?.id || ''} onChange={(e) => { setActiveLote360(lotes.find(l => l.id === e.target.value)); setActiveRoom360(null); }} className="w-full bg-black p-3 text-sm border border-[#292524] text-white outline-none mb-4">
+                  <select value={activeLote360?.id || ''} onChange={(e) => { setActiveLote360(lotes.find(l => l.id === e.target.value)); setActiveRoom360(null); setIsAddingHotspot(false); }} className="w-full bg-black p-3 text-sm border border-[#292524] text-white outline-none mb-4">
                     <option value="">-- Elegí Lote --</option>
                     {lotes.map(l => <option key={l.id} value={l.id}>{l.number}</option>)}
                   </select>
@@ -306,7 +322,7 @@ export default function AdminPage() {
                         {(activeLote360.housetour || []).map((room: any) => (
                           <div key={room.id} className={`p-2 border flex flex-col gap-2 ${activeRoom360?.id === room.id ? 'bg-[#C9A962]/10 border-[#C9A962]' : 'bg-black border-[#292524]'}`}>
                             <div className="flex justify-between items-center">
-                              <button onClick={() => setActiveRoom360(room)} className="text-xs font-bold text-left flex-1">{room.name}</button>
+                              <button onClick={() => { setActiveRoom360(room); setIsAddingHotspot(false); }} className="text-xs font-bold text-left flex-1">{room.name}</button>
                               <button onClick={() => deleteRoom(room.id)} className="text-red-500 text-[10px] px-2 border border-red-900/50 hover:bg-red-500 hover:text-white">X Hab.</button>
                             </div>
                             {room.hotspots?.map((hs:any, i:number) => (
@@ -366,25 +382,24 @@ export default function AdminPage() {
 
           {/* VISTA 360 */}
           <div className={`absolute inset-0 w-full h-full z-30 ${adminTab === '360' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-             {adminTab === '360' && ((mode360 === 'GLOBAL') || (mode360 === 'HOUSE' && activeRoom360)) && !hotspotModal && (
-               <>
-                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40">
-                    <svg width="40" height="40" viewBox="0 0 40 40">
-                       <circle cx="20" cy="20" r="2" fill="#C9A962" />
-                       <circle cx="20" cy="20" r="12" fill="none" stroke="#C9A962" strokeWidth="2" strokeDasharray="4 4" />
-                       <line x1="20" y1="0" x2="20" y2="8" stroke="#C9A962" strokeWidth="2" />
-                       <line x1="20" y1="32" x2="20" y2="40" stroke="#C9A962" strokeWidth="2" />
-                       <line x1="0" y1="20" x2="8" y2="20" stroke="#C9A962" strokeWidth="2" />
-                       <line x1="32" y1="20" x2="40" y2="20" stroke="#C9A962" strokeWidth="2" />
-                    </svg>
-                 </div>
-                 <button onClick={captureCenterHotspot} className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#C9A962] text-black px-6 py-3 font-bold uppercase text-xs tracking-widest shadow-[0_0_20px_rgba(201,169,98,0.5)] hover:bg-white transition-all hover:scale-105">
-                   📍 Fijar Punto Aquí
-                 </button>
-               </>
-             )}
              
-             <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing bg-[#1C1917]" />
+             {/* ── BOTÓN PARA ACTIVAR EL CLIC DIRECTO ── */}
+             {adminTab === '360' && !hotspotModal && ((mode360 === 'GLOBAL') || (mode360 === 'HOUSE' && activeRoom360)) && (
+               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 flex flex-col items-center">
+                 {isAddingHotspot ? (
+                   <div className="bg-blue-600 text-white px-6 py-3 font-bold uppercase text-xs tracking-widest shadow-[0_0_30px_rgba(37,99,235,0.8)] animate-pulse rounded flex flex-col items-center gap-2">
+                     <span>🎯 Hacé clic en la imagen donde querés la flecha</span>
+                     <button onClick={() => setIsAddingHotspot(false)} className="text-[9px] bg-black/30 px-3 py-1 hover:bg-black/50">Cancelar</button>
+                   </div>
+                 ) : (
+                   <button onClick={() => setIsAddingHotspot(true)} className="bg-[#C9A962] text-black px-6 py-3 font-bold uppercase text-xs tracking-widest shadow-[0_0_20px_rgba(201,169,98,0.5)] hover:bg-white transition-all hover:scale-105 rounded">
+                     + Agregar Flecha Aquí
+                   </button>
+                 )}
+               </div>
+             )}
+
+             <div ref={containerRef} className={`w-full h-full bg-[#1C1917] ${isAddingHotspot ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`} />
              
              <AnimatePresence>
                 {hotspotModal && (
@@ -396,21 +411,12 @@ export default function AdminPage() {
                       {mode360 === 'GLOBAL' ? zonas.filter(z => !z.pitch).map(z => <option key={z.id} value={z.id}>{z.title}</option>) : activeLote360.housetour.filter((r:any) => r.id !== activeRoom360.id).map((r:any) => <option key={r.id} value={r.id}>{r.name}</option>)}
                     </select>
                     <div className="flex gap-2">
-                      <button onClick={() => setHotspotModal(null)} className="flex-1 bg-transparent text-gray-400 border border-gray-600 text-[10px] uppercase font-bold py-2 hover:text-white">Cancelar</button>
+                      <button onClick={() => { setHotspotModal(null); try{ viewerRef.current.removeHotSpot('temp-mark'); }catch(e){} }} className="flex-1 bg-transparent text-gray-400 border border-gray-600 text-[10px] uppercase font-bold py-2 hover:text-white">Cancelar</button>
                       <button onClick={saveVisualHotspot} className="flex-1 bg-[#C9A962] text-black text-[10px] uppercase font-bold py-2 shadow-lg hover:bg-white transition-colors">Guardar</button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
-          </div>
-
-          {/* VISTA CONFIG (Aviso visual para que no pienses que se rompió) */}
-          <div className={`absolute inset-0 w-full h-full z-40 bg-black flex items-center justify-center ${adminTab === 'CONFIG' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
-             <div className="text-center">
-               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C9A962" strokeWidth="1" className="mx-auto mb-4"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-               <h2 className="text-[#C9A962] font-[family-name:var(--font-cormorant)] text-2xl">Modo Configuración Activo</h2>
-               <p className="text-gray-500 text-xs uppercase tracking-widest mt-2">Visores en pausa para ahorrar memoria</p>
-             </div>
           </div>
 
         </div>
