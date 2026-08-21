@@ -22,7 +22,7 @@ export default function AdminPage() {
   const [currentDrawing, setCurrentDrawing] = useState<{x: number, y: number}[]>([]);
   const [mode, setMode] = useState<'VIEW' | 'DRAW_ZONA' | 'DRAW_LOTE'>('VIEW');
   
-  // ESTADOS 360
+  // ESTADOS 360 & CONFIG
   const [adminTab, setAdminTab] = useState<'2D' | '360' | 'CONFIG'>('2D');
   const [mode360, setMode360] = useState<'GLOBAL' | 'HOUSE'>('GLOBAL');
   const [activeLote360, setActiveLote360] = useState<any>(null);
@@ -62,7 +62,11 @@ export default function AdminPage() {
 
   // ── MOTOR 360 DEL ADMIN ──
   useEffect(() => {
-    if (adminTab !== '360' || !isAuthenticated) return;
+    // Si no estamos en la pestaña 360, destruimos el visor para que no cause bugs
+    if (adminTab !== '360' || !isAuthenticated) {
+      if (viewerRef.current) { viewerRef.current.destroy(); viewerRef.current = null; }
+      return;
+    }
     if (mode360 === 'HOUSE' && !activeRoom360) return;
 
     const initPannellum = () => {
@@ -84,8 +88,12 @@ export default function AdminPage() {
         })) || [];
       }
 
+      if (viewerRef.current) viewerRef.current.destroy();
+
       viewerRef.current = pnl.viewer(containerRef.current, {
-        type: 'equirectangular', panorama: imageToLoad, autoLoad: true, showZoomCtrl: true, showFullscreenCtrl: false, hotSpots: hotSpots
+        type: 'equirectangular', panorama: imageToLoad, autoLoad: true, showZoomCtrl: true, showFullscreenCtrl: false, hotSpots: hotSpots,
+        autoLoadCallback: () => console.log('360 Cargado correctamente'),
+        // Si la imagen falla (ej: 404), Pannellum tira error interno.
       });
     };
 
@@ -97,7 +105,6 @@ export default function AdminPage() {
     return () => { if (viewerRef.current) { viewerRef.current.destroy(); viewerRef.current = null; } };
   }, [adminTab, mode360, activeRoom360, zonas, globalConfig.imagen_360, isAuthenticated]);
 
-  // ── FUNCIÓN DE CAPTURA CON MIRA CENTRAL ──
   const captureCenterHotspot = () => {
     if (!viewerRef.current) return;
     const pitch = viewerRef.current.getPitch().toFixed(2);
@@ -105,12 +112,10 @@ export default function AdminPage() {
     setHotspotModal({ pitch: parseFloat(pitch), yaw: parseFloat(yaw) });
   };
 
-  // ── ACTUALIZAR CONFIGURACIÓN GLOBAL ──
   const updateGlobalImages = async () => {
     if (zonas.length === 0) return alert("Debes crear al menos una manzana primero.");
     const { error } = await supabase.from('zonas').update({ imagen_360: globalConfig.imagen_360, imagen_2d: globalConfig.imagen_2d }).eq('id', zonas[0].id);
-    if (error) alert("Error: " + error.message);
-    else alert("Imágenes actualizadas. Recordá subir los archivos a tu carpeta public.");
+    if (error) alert("Error: " + error.message); else alert("Imágenes actualizadas. Recordá subir los archivos a tu carpeta public.");
   };
 
   // ── LÓGICAS CRUD ──
@@ -126,7 +131,7 @@ export default function AdminPage() {
     
     if (mode === 'DRAW_ZONA') {
       const newZona = { id: `zona-${Date.now()}`, title: `Manzana ${zonas.length + 1}`, polygon: pointsStr, microimage: '/areozona1.jpg', imagen_360: globalConfig.imagen_360, imagen_2d: globalConfig.imagen_2d };
-      setZonas([...zonas, newZona]); // Optimista
+      setZonas([...zonas, newZona]);
       await supabase.from('zonas').insert(newZona);
     } else if (mode === 'DRAW_LOTE' && activeZona) {
       const cX = (currentDrawing.reduce((a, p) => a + p.x, 0) / currentDrawing.length).toFixed(2);
@@ -136,7 +141,6 @@ export default function AdminPage() {
     setCurrentDrawing([]); setMode('VIEW'); fetchData();
   };
 
-  // BORRADO OPTIMISTA (Instantáneo visualmente)
   const deleteZona = async (id: string) => { 
     if(!confirm("¿Borrar Manzana y sus lotes?")) return;
     setZonas(prev => prev.filter(z => z.id !== id));
@@ -204,18 +208,18 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#0C0A09] text-white overflow-hidden">
-      <aside className="w-full md:w-[400px] bg-[#1C1917] border-r border-[#292524] flex flex-col h-screen shrink-0">
+      <aside className="w-full md:w-[400px] bg-[#1C1917] border-r border-[#292524] flex flex-col h-screen shrink-0 relative z-50">
         <div className="p-4 border-b border-[#292524] flex gap-2">
           <button onClick={() => { setAdminTab('2D'); setMode('VIEW'); setHotspotModal(null); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '2D' ? 'bg-blue-600 text-white' : 'bg-black text-gray-400 border border-[#292524]'}`}>Mapeo 2D</button>
           <button onClick={() => { setAdminTab('360'); setMode('VIEW'); setHotspotModal(null); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '360' ? 'bg-[#C9A962] text-black' : 'bg-black text-gray-400 border border-[#292524]'}`}>Tours 360</button>
           <button onClick={() => { setAdminTab('CONFIG'); setMode('VIEW'); setHotspotModal(null); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === 'CONFIG' ? 'bg-green-600 text-white' : 'bg-black text-gray-400 border border-[#292524]'}`}>Config</button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
           {adminTab === 'CONFIG' && (
             <div className="animate-in fade-in">
               <h3 className="text-[10px] uppercase tracking-widest text-[#C9A962] mb-3 font-bold">Imágenes Principales</h3>
-              <p className="text-xs text-gray-400 mb-4">Cambiá la foto de fondo del mapa general o el cielo 360.</p>
+              <p className="text-xs text-gray-400 mb-4">Asegurate de incluir la extensión correcta (.jpg, .png, .webp). El 360 debe ser formato equirectangular 2:1.</p>
               
               <label className="block text-[10px] text-gray-400 uppercase mb-1">URL Imagen Aérea 2D</label>
               <input type="text" value={globalConfig.imagen_2d} onChange={e => setGlobalConfig({...globalConfig, imagen_2d: e.target.value})} className="w-full bg-black p-3 mb-4 text-xs text-white border border-[#292524] outline-none" />
@@ -245,7 +249,7 @@ export default function AdminPage() {
 
                   {activeZona && (
                     <div className="mb-8 animate-in fade-in">
-                      <button onClick={() => setMode('DRAW_LOTE')} className={`w-full py-3 text-[10px] font-bold uppercase mb-3 transition-colors shadow-lg ${mode === 'DRAW_LOTE' ? 'bg-green-600 text-white' : 'bg-green-900/20 border border-green-800 text-green-400'}`}>+ Dibujar Lote Nuevo en {activeZona.title}</button>
+                      <button onClick={() => setMode('DRAW_LOTE')} className={`w-full py-3 text-[10px] font-bold uppercase mb-3 transition-colors shadow-lg ${mode === 'DRAW_LOTE' ? 'bg-green-600 text-white' : 'bg-green-900/20 border border-green-800 text-green-400'}`}>+ Dibujar Lote en {activeZona.title}</button>
                       <div className="flex flex-col gap-2 mt-2">
                         {lotes.filter(l => l.zona_id === activeZona.id).map(lot => (
                           <div key={lot.id} className="flex gap-2 items-center bg-black border border-[#292524] p-2">
@@ -285,7 +289,7 @@ export default function AdminPage() {
                   <h3 className="text-[10px] uppercase tracking-widest text-[#C9A962] mb-3 font-bold">Puntos Hacia Manzanas</h3>
                   <div className="flex flex-col gap-2">
                     {zonas.filter(z => z.pitch && z.yaw).map(z => (
-                      <div key={z.id} className="flex justify-between items-center bg-black border border-[#292524] p-3 text-xs"><span className="font-bold">{z.title}</span><button onClick={() => removeGlobalHotspot(z.id)} className="text-red-500">Borrar Punto</button></div>
+                      <div key={z.id} className="flex justify-between items-center bg-black border border-[#292524] p-3 text-xs"><span className="font-bold">{z.title}</span><button onClick={() => removeGlobalHotspot(z.id)} className="text-red-500 hover:text-white">Borrar Punto</button></div>
                     ))}
                   </div>
                 </div>
@@ -303,11 +307,11 @@ export default function AdminPage() {
                           <div key={room.id} className={`p-2 border flex flex-col gap-2 ${activeRoom360?.id === room.id ? 'bg-[#C9A962]/10 border-[#C9A962]' : 'bg-black border-[#292524]'}`}>
                             <div className="flex justify-between items-center">
                               <button onClick={() => setActiveRoom360(room)} className="text-xs font-bold text-left flex-1">{room.name}</button>
-                              <button onClick={() => deleteRoom(room.id)} className="text-red-500 text-[10px] px-2 border border-red-900/50">X Hab.</button>
+                              <button onClick={() => deleteRoom(room.id)} className="text-red-500 text-[10px] px-2 border border-red-900/50 hover:bg-red-500 hover:text-white">X Hab.</button>
                             </div>
                             {room.hotspots?.map((hs:any, i:number) => (
                               <div key={i} className="flex justify-between text-[9px] text-gray-400 pl-2 border-l border-gray-700">
-                                <span>Flecha: "{hs.text}"</span><button onClick={() => removeHouseHotspot(room.id, hs.targetId)} className="text-red-400">Borrar</button>
+                                <span>Flecha: "{hs.text}"</span><button onClick={() => removeHouseHotspot(room.id, hs.targetId)} className="text-red-400 hover:text-white">Borrar</button>
                               </div>
                             ))}
                           </div>
@@ -315,9 +319,9 @@ export default function AdminPage() {
                       </div>
 
                       <div className="bg-[#1C1917] p-3 border border-[#292524]">
-                        <input type="text" placeholder="Nombre (Living)" value={newRoomName} onChange={e => setNewRoomName(e.target.value)} className="w-full bg-black border border-[#292524] p-2 text-xs mb-2 text-white" />
-                        <input type="text" placeholder="URL Imagen (/living.jpg)" value={newRoomImg} onChange={e => setNewRoomImg(e.target.value)} className="w-full bg-black border border-[#292524] p-2 text-xs mb-3 text-white" />
-                        <button onClick={addRoom} className="w-full bg-[#C9A962] text-black text-[10px] font-bold uppercase py-2">Guardar Habitación</button>
+                        <input type="text" placeholder="Nombre (Ej: Living)" value={newRoomName} onChange={e => setNewRoomName(e.target.value)} className="w-full bg-black border border-[#292524] p-2 text-xs mb-2 text-white" />
+                        <input type="text" placeholder="URL Foto (.jpg, .webp)" value={newRoomImg} onChange={e => setNewRoomImg(e.target.value)} className="w-full bg-black border border-[#292524] p-2 text-xs mb-3 text-white" />
+                        <button onClick={addRoom} className="w-full bg-[#C9A962] text-black text-[10px] font-bold uppercase py-2 hover:bg-white transition-colors">Guardar Habitación</button>
                       </div>
                     </>
                   )}
@@ -332,19 +336,20 @@ export default function AdminPage() {
         <div className="h-12 border-b border-[#292524] bg-[#1C1917] flex items-center justify-between px-6 z-40 shrink-0">
           <span className="text-[10px] uppercase tracking-widest text-[#C9A962] font-bold flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> 
-            {adminTab === '2D' ? (mode === 'VIEW' ? 'MAPA 2D' : `DIBUJANDO`) : 'VISOR 360'}
+            {adminTab === '2D' ? (mode === 'VIEW' ? 'MAPA 2D' : `DIBUJANDO`) : adminTab === '360' ? 'VISOR 360' : 'CONFIGURACIÓN'}
           </span>
           {currentDrawing.length > 0 && adminTab === '2D' && (
             <div className="flex gap-3">
-              <button onClick={() => setCurrentDrawing([])} className="text-red-400 text-[10px] uppercase font-bold">Limpiar</button>
-              <button onClick={saveDrawing} className="bg-green-600 text-white px-4 py-1.5 text-[10px] uppercase font-bold">Guardar</button>
+              <button onClick={() => setCurrentDrawing([])} className="text-red-400 text-[10px] uppercase font-bold hover:text-red-300">Limpiar</button>
+              <button onClick={saveDrawing} className="bg-green-600 text-white px-4 py-1.5 text-[10px] uppercase font-bold shadow-[0_0_10px_rgba(34,197,94,0.3)]">Guardar Polígono</button>
             </div>
           )}
         </div>
 
-        <div className="flex-1 relative overflow-hidden flex items-center justify-center p-4">
+        <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-black">
           
-          <div className={`absolute inset-0 w-full h-full z-20 ${adminTab === '2D' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+          {/* VISTA 2D */}
+          <div className={`absolute inset-0 w-full h-full z-20 ${adminTab === '2D' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
             <div className={`w-full h-full flex items-center justify-center relative ${mode !== 'VIEW' ? 'cursor-crosshair' : ''}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={globalConfig.imagen_2d} alt="Plano" className="max-w-full max-h-[85vh] object-contain pointer-events-none select-none border border-[#292524]" />
@@ -359,27 +364,27 @@ export default function AdminPage() {
             </div>
           </div>
 
-          <div className={`absolute inset-0 w-full h-full z-10 ${adminTab === '360' || adminTab === 'CONFIG' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-             {/* ── MIRA CENTRAL PROFESIONAL PARA CAPTURA 360 ── */}
-             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40">
-                <svg width="40" height="40" viewBox="0 0 40 40">
-                   <circle cx="20" cy="20" r="2" fill="#C9A962" />
-                   <circle cx="20" cy="20" r="12" fill="none" stroke="#C9A962" strokeWidth="2" strokeDasharray="4 4" />
-                   <line x1="20" y1="0" x2="20" y2="8" stroke="#C9A962" strokeWidth="2" />
-                   <line x1="20" y1="32" x2="20" y2="40" stroke="#C9A962" strokeWidth="2" />
-                   <line x1="0" y1="20" x2="8" y2="20" stroke="#C9A962" strokeWidth="2" />
-                   <line x1="32" y1="20" x2="40" y2="20" stroke="#C9A962" strokeWidth="2" />
-                </svg>
-             </div>
-             
-             {/* ── BOTÓN GIGANTE DE CAPTURA ── */}
-             {adminTab === '360' && !hotspotModal && ((mode360 === 'GLOBAL') || (mode360 === 'HOUSE' && activeRoom360)) && (
-               <button onClick={captureCenterHotspot} className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#C9A962] text-black px-6 py-3 font-bold uppercase text-xs tracking-widest shadow-[0_0_20px_rgba(201,169,98,0.5)] hover:bg-white transition-all hover:scale-105">
-                 📍 Fijar Punto Aquí
-               </button>
+          {/* VISTA 360 */}
+          <div className={`absolute inset-0 w-full h-full z-30 ${adminTab === '360' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+             {adminTab === '360' && ((mode360 === 'GLOBAL') || (mode360 === 'HOUSE' && activeRoom360)) && !hotspotModal && (
+               <>
+                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-40">
+                    <svg width="40" height="40" viewBox="0 0 40 40">
+                       <circle cx="20" cy="20" r="2" fill="#C9A962" />
+                       <circle cx="20" cy="20" r="12" fill="none" stroke="#C9A962" strokeWidth="2" strokeDasharray="4 4" />
+                       <line x1="20" y1="0" x2="20" y2="8" stroke="#C9A962" strokeWidth="2" />
+                       <line x1="20" y1="32" x2="20" y2="40" stroke="#C9A962" strokeWidth="2" />
+                       <line x1="0" y1="20" x2="8" y2="20" stroke="#C9A962" strokeWidth="2" />
+                       <line x1="32" y1="20" x2="40" y2="20" stroke="#C9A962" strokeWidth="2" />
+                    </svg>
+                 </div>
+                 <button onClick={captureCenterHotspot} className="absolute bottom-10 left-1/2 -translate-x-1/2 z-40 bg-[#C9A962] text-black px-6 py-3 font-bold uppercase text-xs tracking-widest shadow-[0_0_20px_rgba(201,169,98,0.5)] hover:bg-white transition-all hover:scale-105">
+                   📍 Fijar Punto Aquí
+                 </button>
+               </>
              )}
-
-             <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+             
+             <div ref={containerRef} className="w-full h-full cursor-grab active:cursor-grabbing bg-[#1C1917]" />
              
              <AnimatePresence>
                 {hotspotModal && (
@@ -392,11 +397,20 @@ export default function AdminPage() {
                     </select>
                     <div className="flex gap-2">
                       <button onClick={() => setHotspotModal(null)} className="flex-1 bg-transparent text-gray-400 border border-gray-600 text-[10px] uppercase font-bold py-2 hover:text-white">Cancelar</button>
-                      <button onClick={saveVisualHotspot} className="flex-1 bg-[#C9A962] text-black text-[10px] uppercase font-bold py-2 shadow-lg hover:bg-white">Guardar</button>
+                      <button onClick={saveVisualHotspot} className="flex-1 bg-[#C9A962] text-black text-[10px] uppercase font-bold py-2 shadow-lg hover:bg-white transition-colors">Guardar</button>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
+          </div>
+
+          {/* VISTA CONFIG (Aviso visual para que no pienses que se rompió) */}
+          <div className={`absolute inset-0 w-full h-full z-40 bg-black flex items-center justify-center ${adminTab === 'CONFIG' ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+             <div className="text-center">
+               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#C9A962" strokeWidth="1" className="mx-auto mb-4"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+               <h2 className="text-[#C9A962] font-[family-name:var(--font-cormorant)] text-2xl">Modo Configuración Activo</h2>
+               <p className="text-gray-500 text-xs uppercase tracking-widest mt-2">Visores en pausa para ahorrar memoria</p>
+             </div>
           </div>
 
         </div>
