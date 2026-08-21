@@ -39,6 +39,7 @@ export default function AdminPage() {
   // ── 1. INIT & FETCH ──
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!supabaseUrl) return alert("Falta la URL de Supabase en las variables de entorno.");
     if (pinInput === '1234') setIsAuthenticated(true);
     else alert('PIN Incorrecto');
   };
@@ -49,7 +50,6 @@ export default function AdminPage() {
     if (zData) setZonas(zData);
     if (lData) {
       setLotes(lData);
-      // Actualizar el lote 360 activo si hubo cambios
       if (activeLote360) {
         const updatedLote = lData.find(l => l.id === activeLote360.id);
         setActiveLote360(updatedLote);
@@ -62,7 +62,7 @@ export default function AdminPage() {
 
   useEffect(() => { if (isAuthenticated) fetchData(); }, [isAuthenticated]);
 
-  // ── 2. LÓGICA 2D ──
+  // ── 2. LÓGICA 2D Y EDITOR ──
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (mode === 'VIEW') return;
     const rect = e.currentTarget.getBoundingClientRect();
@@ -87,6 +87,14 @@ export default function AdminPage() {
       });
     }
     setCurrentDrawing([]); setMode('VIEW'); fetchData();
+  };
+
+  // 👇 ACÁ ESTÁ LA FUNCIÓN QUE FALTABA 👇
+  const openEditor = (lot: any) => {
+    setEditingLote({
+      ...lot,
+      featuresRaw: lot.features ? lot.features.join('\n') : ''
+    });
   };
 
   const updateLote = async () => {
@@ -121,7 +129,6 @@ export default function AdminPage() {
         showZoomCtrl: true, showFullscreenCtrl: false, hotSpots: hotSpots
       });
 
-      // AL HACER CLIC, ABRIR MODAL PARA CREAR HOTSPOT
       viewerRef.current.on('mousedown', (event: MouseEvent) => {
         const coords = viewerRef.current.mouseEventToCoords(event);
         setHotspotModal({ pitch: coords[0], yaw: coords[1] });
@@ -136,7 +143,7 @@ export default function AdminPage() {
     } else { setTimeout(initPannellum, 100); }
 
     return () => { if (viewerRef.current) { viewerRef.current.destroy(); viewerRef.current = null; } };
-  }, [adminTab, activeRoom360]); // Se recarga cuando cambia la habitación activa
+  }, [adminTab, activeRoom360]);
 
   const addRoom = async () => {
     if (!newRoomName || !newRoomImg || !activeLote360) return;
@@ -170,7 +177,7 @@ export default function AdminPage() {
 
     await supabase.from('lotes').update({ housetour: updatedTour }).eq('id', activeLote360.id);
     setHotspotModal(null); setHotspotTarget(''); setHotspotText('Ir a...');
-    fetchData(); // Refresca la BD y re-renderiza Pannellum
+    fetchData(); 
   };
 
   // ── LOGIN SCREEN ──
@@ -199,7 +206,6 @@ export default function AdminPage() {
 
         <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
           {adminTab === '2D' ? (
-            /* ── PESTAÑA 2D ── */
             <>
               {!editingLote ? (
                 <>
@@ -222,7 +228,6 @@ export default function AdminPage() {
                   )}
                 </>
               ) : (
-                /* EDITOR DE LOTE 2D */
                 <div className="bg-black p-5 border border-blue-500 animate-in slide-in-from-right-4">
                   <div className="flex justify-between items-center mb-5 border-b border-[#292524] pb-3">
                     <h3 className="text-blue-400 text-sm font-bold uppercase tracking-wider">Modificar Lote</h3>
@@ -258,7 +263,6 @@ export default function AdminPage() {
               )}
             </>
           ) : (
-            /* ── PESTAÑA 360 (VISUAL BUILDER) ── */
             <>
               <div className="mb-6">
                 <h3 className="text-[10px] uppercase tracking-widest text-gray-400 mb-2 font-bold">1. Seleccionar Lote a Editar</h3>
@@ -275,7 +279,6 @@ export default function AdminPage() {
                 <div className="animate-in fade-in">
                   <h3 className="text-[10px] uppercase tracking-widest text-[#C9A962] mb-3 font-bold border-b border-[#292524] pb-2">Habitaciones del Tour</h3>
                   
-                  {/* Lista de Habitaciones */}
                   <div className="flex flex-col gap-2 mb-4">
                     {(activeLote360.housetour || []).map((room: any) => (
                       <div key={room.id} className={`flex items-center justify-between p-2 border ${activeRoom360?.id === room.id ? 'bg-[#C9A962]/20 border-[#C9A962]' : 'bg-black border-[#292524]'}`}>
@@ -286,7 +289,6 @@ export default function AdminPage() {
                     {(!activeLote360.housetour || activeLote360.housetour.length === 0) && <p className="text-xs text-gray-500 italic">No hay habitaciones cargadas.</p>}
                   </div>
 
-                  {/* Agregar Nueva Habitación */}
                   <div className="bg-[#1C1917] p-3 border border-[#292524]">
                     <p className="text-[10px] text-gray-400 uppercase mb-2">Añadir Habitación</p>
                     <input type="text" placeholder="Nombre (Ej: Living)" value={newRoomName} onChange={e => setNewRoomName(e.target.value)} className="w-full bg-black border border-[#292524] p-2 text-xs mb-2 outline-none text-white" />
@@ -310,7 +312,6 @@ export default function AdminPage() {
       {/* ── ÁREA DE TRABAJO (MAPA / VISOR 360) ── */}
       <main className="flex-1 relative bg-black flex flex-col h-screen">
         
-        {/* BARRA SUPERIOR INDICADORA */}
         <div className="h-12 border-b border-[#292524] bg-[#1C1917] flex items-center justify-between px-6 z-40 shrink-0">
           <span className="text-[10px] uppercase tracking-widest text-[#C9A962] font-bold flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> 
@@ -324,11 +325,9 @@ export default function AdminPage() {
           )}
         </div>
 
-        {/* CONTENEDOR VISUAL */}
         <div className="flex-1 relative overflow-hidden flex items-center justify-center p-4">
           
           {adminTab === '2D' ? (
-            /* RENDER 2D */
             <div className={`relative inline-block max-w-full max-h-full ${mode !== 'VIEW' ? 'cursor-crosshair' : ''}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/areo.jpg" alt="Plano" className="max-w-full max-h-[85vh] object-contain pointer-events-none select-none border border-[#292524]" />
@@ -336,17 +335,14 @@ export default function AdminPage() {
               <div className="absolute inset-0 z-30" onClick={handleImageClick}>
                 <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
                   
-                  {/* MANZANAS (Si dibujo LOTE, saco los pointer-events para que no molesten los clics) */}
                   {zonas.map(z => (
                     <polygon key={z.id} points={z.polygon} className={`transition-all ${mode === 'DRAW_LOTE' ? 'pointer-events-none stroke-blue-400/30 fill-transparent' : 'pointer-events-auto cursor-pointer'} ${activeZona?.id === z.id ? 'stroke-blue-400 stroke-[0.3] fill-blue-400/10' : 'stroke-white/30 stroke-[0.1] fill-white/5 hover:fill-white/10'}`} onClick={(e) => { e.stopPropagation(); if(mode === 'VIEW') setActiveZona(z); }} />
                   ))}
 
-                  {/* LOTES */}
                   {activeZona && lotes.filter(l => l.zona_id === activeZona.id).map(lot => (
-                    <polygon key={lot.id} points={lot.points} onClick={(e) => { e.stopPropagation(); if(mode==='VIEW'){ setEditingLote(lot); openEditor(lot); } }} className={`pointer-events-auto cursor-pointer transition-all stroke-[0.2] hover:opacity-80 ${editingLote?.id === lot.id ? 'stroke-white stroke-[0.4] z-50' : 'stroke-white/50'} ${lot.status === 'disponible' ? 'fill-green-500/80' : 'fill-red-500/80'}`} />
+                    <polygon key={lot.id} points={lot.points} onClick={(e) => { e.stopPropagation(); if(mode==='VIEW') openEditor(lot); }} className={`pointer-events-auto cursor-pointer transition-all stroke-[0.2] hover:opacity-80 ${editingLote?.id === lot.id ? 'stroke-white stroke-[0.4] z-50' : 'stroke-white/50'} ${lot.status === 'disponible' ? 'fill-green-500/80' : 'fill-red-500/80'}`} />
                   ))}
 
-                  {/* LÁPIZ EN VIVO */}
                   {currentDrawing.length > 0 && <polyline points={currentDrawing.map(p => `${p.x},${p.y}`).join(' ')} className="fill-none stroke-yellow-400 stroke-[0.3] stroke-dasharray-1" />}
                 </svg>
 
@@ -354,7 +350,6 @@ export default function AdminPage() {
               </div>
             </div>
           ) : (
-            /* RENDER 360 */
             <div className="w-full h-full relative border border-[#292524]">
               {activeRoom360 ? (
                 <div ref={containerRef} className="w-full h-full cursor-crosshair" />
@@ -365,10 +360,9 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* MODAL PARA GUARDAR HOTSPOT */}
               <AnimatePresence>
                 {hotspotModal && (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1C1917] p-6 border border-[#C9A962] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 w-80">
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#1C1917] p-6 border border-[#C9A962] shadow-[0_0_50px_rgba(0,0,0,0.8)] z-50 w-80">
                     <h4 className="text-[#C9A962] font-bold uppercase text-xs mb-4 text-center tracking-widest">Crear Conexión (Flecha)</h4>
                     
                     <label className="block text-[10px] text-gray-400 uppercase mb-1">Texto de la flecha</label>
@@ -384,7 +378,7 @@ export default function AdminPage() {
 
                     <div className="flex gap-2">
                       <button onClick={() => setHotspotModal(null)} className="flex-1 bg-transparent text-gray-400 border border-gray-600 text-[10px] uppercase font-bold py-2 hover:text-white">Cancelar</button>
-                      <button onClick={saveVisualHotspot} className="flex-1 bg-[#C9A962] text-black text-[10px] uppercase font-bold py-2 hover:bg-white shadow-lg">Guardar Conexión</button>
+                      <button onClick={saveVisualHotspot} className="flex-1 bg-[#C9A962] text-black text-[10px] uppercase font-bold py-2 hover:bg-white shadow-lg">Guardar</button>
                     </div>
                   </motion.div>
                 )}
@@ -396,4 +390,4 @@ export default function AdminPage() {
       </main>
     </div>
   );
-}
+}  
