@@ -15,8 +15,8 @@
     "whatsapp": "Escribinos por WhatsApp"
   },
   "preloader": {
-    "line1": "Tierra, río y aire",
-    "line2": "conectados en un mismo lugar"
+    "line1": "Tierra, río y aire conectados en un mismo lugar",
+    "line2": "Golf profesional, náutica privada y pista de aterrizaje."
   },
   "nav": {
     "inicio": "Inicio",
@@ -28,10 +28,10 @@
     "cta": "Consultar"
   },
   "hero": {
-    "kicker": "Condominio privado sobre el Río Paraná",
-    "title": "Tierra, río y aire",
-    "titleAccent": "en un mismo lugar",
-    "subtitle": "Golf profesional, náutica privada y aeropuerto ejecutivo a 40 minutos de Asunción.",
+    "kicker": "Descubrí AguaVista",
+    "title": "Tierra, río y aire conectados en un mismo lugar.",
+    "titleAccent": "Golf profesional, náutica privada y pista de aterrizaje.",
+    "subtitle": "",
     "videoAlt": "Vista aérea del condominio AguaVista sobre el Río Paraná"
   },
   "stats": {
