@@ -11,7 +11,13 @@ import { EASE_LUX } from '@/components/motion/Reveal';
 interface ImgData {
     src: string;
     alt?: string;
-    isText?: boolean;
+    /**
+     * Marca el slot del centro. Antes significaba "no dibujar nada aca, el
+     * texto ocupa este lugar" y la imagen se descartaba. Ahora la imagen SI
+     * se dibuja, participa del zoom como cualquier otra, y se cruza con el
+     * texto a mitad del recorrido.
+     */
+    isCenter?: boolean;
 }
 
 interface ZoomParallaxProps {
@@ -63,15 +69,71 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
     /**
-     * El texto central se desvanece en el primer tercio del zoom.
+     * ── CROSSFADE CENTRAL ──
      *
-     * Antes vivia en `z-0`, debajo de las fotos, asi que en cuanto estas
-     * empezaban a crecer le pasaban por encima y lo dejaban cortado a la
-     * mitad. Ahora va arriba de todo (`z-20`) y en vez de competir con las
-     * imagenes se retira: se lee limpio mientras la galeria esta en reposo
-     * y libera la pantalla justo cuando el zoom se vuelve protagonista.
+     * Al llegar a la seccion, el centro es una FOTO que hace zoom con el
+     * resto. A mitad del recorrido esa foto se apaga y el texto se
+     * enciende ocupando el mismo lugar.
+     *
+     * La franja es simetrica alrededor de 0.5, asi que el cruce —el punto
+     * donde ambos valen 0.5 de opacidad— cae exactamente en el 50% del
+     * progreso, que es el disparador pedido. El ancho de 0.16 es lo que
+     * hace que se lea como un fundido y no como un corte seco.
+     *
+     * Va atado a `galleryScroll` y no a un estado de React: el valor sale
+     * de un MotionValue, asi que framer lo escribe directo en el estilo
+     * sin re-renderizar el arbol en cada frame del scroll, y como es una
+     * funcion pura del progreso el efecto se revierte solo al subir.
+     *
+     * ── Por que la version de FUNCION y no `useTransform(v, [a,b], [1,0])` ──
+     *
+     * Con la forma de arrays, framer reconoce los tramos como keyframes y
+     * "acelera" la opacidad: se la entrega al navegador como animacion
+     * nativa de scroll. El problema es con QUE reloj se la entrega. Medido
+     * en el navegador: arma un `ViewTimeline` con `rangeName: "contain"`,
+     * que no mide el progreso del scroll de la seccion sino cuanto entro y
+     * salio el elemento de la pantalla. Ese valor sube y despues BAJA, asi
+     * que la foto se desvanecia bien hasta el 60% y despues reaparecia
+     * sola hasta volver a opacidad 1 al final. Ademas la animacion nativa
+     * pisa el estilo inline, asi que el nodo decia `opacity: 1` mientras se
+     * veia al 5%: el inline dejaba de ser la fuente de verdad.
+     *
+     * Una funcion no se puede expresar como keyframes, asi que framer no
+     * la puede delegar y la resuelve en JS contra `galleryScroll`, que es
+     * el progreso que realmente queremos. Es el mismo camino por el que ya
+     * pasa el `scale` de las fotos, que siempre funciono bien.
      */
-    const centerTextOpacity = useTransform(galleryScroll, [0.10, 0.42], [1, 0]);
+    const CROSS_START = 0.42;
+    const CROSS_END = 0.58;
+
+    /** 1 antes de la franja, 0 despues, lineal entre medio. */
+    const fadeOutAt = (progress: number) => {
+        const t = (progress - CROSS_START) / (CROSS_END - CROSS_START);
+        if (t <= 0) return 1;
+        if (t >= 1) return 0;
+        return 1 - t;
+    };
+
+    /*
+     * `reduceMotion` se resuelve DENTRO de la transformada, no en el
+     * `style` del elemento.
+     *
+     * Hacerlo afuera —`style={reduceMotion ? { opacity: 1 } : { opacity: mv }}`—
+     * parecia lo natural y estaba roto: `useReducedMotion()` devuelve
+     * `null` en el primer render y recien despues el valor real, asi que
+     * framer alcanza a enlazar el MotionValue, escribe su valor inicial y,
+     * cuando el prop pasa a ser un numero fijo, se desuscribe pero ya no
+     * vuelve a escribir. Resultado medido: la opacidad quedaba congelada en
+     * la del progreso 0 —foto en 1, texto en 0— y quien tenia la
+     * preferencia activada no veia nunca el texto. Mientras el binding no
+     * cambie de forma, eso no puede pasar.
+     */
+    const centerImageOpacity = useTransform(galleryScroll, (p) =>
+        reduceMotion ? 0 : fadeOutAt(p)
+    );
+    const centerTextOpacity = useTransform(galleryScroll, (p) =>
+        reduceMotion ? 1 : 1 - fadeOutAt(p)
+    );
 
     return (
         <section ref={mainContainer} className="relative w-full bg-[color:var(--av-base)]">
@@ -126,7 +188,9 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                         para que la frase quiebre donde tiene sentido y no
                         contra el borde de la imagen de al lado. */}
                     <motion.div
-                        style={reduceMotion ? undefined : { opacity: centerTextOpacity }}
+                        // Siempre el mismo MotionValue: la decision de
+                        // movimiento reducido ya vino resuelta adentro.
+                        style={{ opacity: centerTextOpacity }}
                         className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center sm:px-10"
                     >
                         {/* Colchon de luz: aunque el texto ya no queda tapado,
@@ -156,9 +220,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                     </motion.div>
 
                     {/* ── MAPEO DE IMÁGENES (POSICIONES ORIGINALES INTACTAS) ── */}
-                    {images.map(({ src, alt, isText }, index) => {
-                        if (isText) return null;
-
+                    {images.map(({ src, alt, isCenter }, index) => {
                         const scale = scales[index % scales.length];
                         return (
                             <motion.div
@@ -192,52 +254,70 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                                     secuencia sale sola: primero el barrido
                                     mientras la seccion sube, despues el zoom. */}
                                 <div className="relative h-[25vh] w-[25vw]">
-                                    {/* El clip-path va en un nodo INTERNO y el
-                                        disparador vive afuera, en la seccion.
-
-                                        No es cosmetico: si el mismo nodo lleva
-                                        el `whileInView` y el clip inicial, se
-                                        bloquean entre si. `inset(0% 50% 0% 50%)`
-                                        recorta 50% por izquierda y 50% por
-                                        derecha, o sea deja el elemento con area
-                                        CERO, y un elemento de area cero nunca
-                                        intersecta el viewport: el disparador no
-                                        llega a dispararse nunca y la foto queda
-                                        invisible para siempre. Es lo que habia
-                                        pasado aca, verificado con un
-                                        IntersectionObserver de control que
-                                        devolvia ratio 0 con la foto entera en
-                                        pantalla.
-
-                                        `initial={false}` con movimiento reducido
-                                        pinta el estado final directo: sin eso el
-                                        variant `hidden` se quedaba aplicado y la
-                                        galeria entera era invisible para quien
-                                        tiene la preferencia activada. */}
+                                    {/* Capa del crossfade.
+                                
+                                        Es un nodo aparte del que lleva el clip-path a
+                                        proposito: los dos animan `opacity` y si compartieran
+                                        elemento se pisarian —el MotionValue del scroll le
+                                        ganaria al variant del barrido de entrada y la foto
+                                        apareceria de golpe—. Separados, las dos opacidades se
+                                        multiplican solas: primero barre, despues se cruza.
+                                
+                                        Solo la del centro se desvanece; las demas quedan sin
+                                        `style`, o sea sin capa extra que animar. */}
                                     <motion.div
-                                        className="absolute inset-0 overflow-hidden"
-                                        initial={reduceMotion ? false : 'hidden'}
-                                        animate={revealed || reduceMotion ? 'visible' : 'hidden'}
-                                        variants={{
-                                            hidden: { clipPath: 'inset(0% 50% 0% 50%)', opacity: 0 },
-                                            visible: {
-                                                clipPath: 'inset(0% 0% 0% 0%)',
-                                                opacity: 1,
-                                                transition: {
-                                                    duration: 1.15,
-                                                    ease: EASE_LUX,
-                                                    delay: organicDelay(index, 0.09),
-                                                },
-                                            },
-                                        }}
+                                        className="absolute inset-0"
+                                        style={
+                                            isCenter ? { opacity: centerImageOpacity } : undefined
+                                        }
                                     >
-                                        <Image
-                                            src={src || '/placeholder.svg'}
-                                            alt={alt || `Parallax image ${index + 1}`}
-                                            fill
-                                            className="object-cover shadow-2xl"
-                                            sizes="(max-width: 768px) 100vw, 33vw"
-                                        />
+                                        {/* El clip-path va en un nodo INTERNO y el
+                                            disparador vive afuera, en la seccion.
+
+                                            No es cosmetico: si el mismo nodo lleva
+                                            el `whileInView` y el clip inicial, se
+                                            bloquean entre si. `inset(0% 50% 0% 50%)`
+                                            recorta 50% por izquierda y 50% por
+                                            derecha, o sea deja el elemento con area
+                                            CERO, y un elemento de area cero nunca
+                                            intersecta el viewport: el disparador no
+                                            llega a dispararse nunca y la foto queda
+                                            invisible para siempre. Es lo que habia
+                                            pasado aca, verificado con un
+                                            IntersectionObserver de control que
+                                            devolvia ratio 0 con la foto entera en
+                                            pantalla.
+
+                                            `initial={false}` con movimiento reducido
+                                            pinta el estado final directo: sin eso el
+                                            variant `hidden` se quedaba aplicado y la
+                                            galeria entera era invisible para quien
+                                            tiene la preferencia activada. */}
+                                        <motion.div
+                                            className="absolute inset-0 overflow-hidden"
+                                            initial={reduceMotion ? false : 'hidden'}
+                                            animate={revealed || reduceMotion ? 'visible' : 'hidden'}
+                                            variants={{
+                                                hidden: { clipPath: 'inset(0% 50% 0% 50%)', opacity: 0 },
+                                                visible: {
+                                                    clipPath: 'inset(0% 0% 0% 0%)',
+                                                    opacity: 1,
+                                                    transition: {
+                                                        duration: 1.15,
+                                                        ease: EASE_LUX,
+                                                        delay: organicDelay(index, 0.09),
+                                                    },
+                                                },
+                                            }}
+                                        >
+                                            <Image
+                                                src={src || '/placeholder.svg'}
+                                                alt={alt || `Parallax image ${index + 1}`}
+                                                fill
+                                                className="object-cover shadow-2xl"
+                                                sizes="(max-width: 768px) 100vw, 33vw"
+                                            />
+                                        </motion.div>
                                     </motion.div>
                                 </div>
                             </motion.div>

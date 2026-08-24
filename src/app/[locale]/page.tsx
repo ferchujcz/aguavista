@@ -124,7 +124,13 @@ export default async function HomePage({
 
       <ZoomParallax
         images={[
-          { src: "/aero1.webp", isText: true },
+          // Slot del centro: hace zoom con las demas y a mitad del
+          // recorrido se cruza con el texto "Explora cada espacio...".
+          {
+            src: "/aero1.webp",
+            alt: "Hangar del aeropuerto ejecutivo de AguaVista",
+            isCenter: true,
+          },
           { src: "/foto-2.webp", alt: "Residencias frente al río en AguaVista" },
           { src: "/foto-3.webp", alt: "Cancha de golf de AguaVista al atardecer" },
           { src: "/foto-4.webp", alt: "Marina privada de AguaVista sobre el Paraná" },
