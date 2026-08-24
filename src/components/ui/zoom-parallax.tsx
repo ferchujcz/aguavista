@@ -172,7 +172,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 
                 <SplitText
                     as="h2"
-                    text="Cada instalación fue diseñada para que tu experiencia de vida sea única."
+                    text="No se trata solo de todo lo que AguaVista tiene, sino de todo lo que te permite vivir"
                     delay={0.15}
                     className="relative font-[family-name:var(--font-cormorant)] text-4xl md:text-6xl lg:text-7xl text-[color:var(--av-text)] font-light max-w-4xl text-balance leading-tight"
                 />
