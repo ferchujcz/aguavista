@@ -3,14 +3,17 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { EASE_LUX } from "./Reveal";
+import { organicDelay } from "./SlideUp";
 
 interface SplitTextProps {
   text: string;
   className?: string;
   /** Retraso antes de la primera palabra. */
   delay?: number;
-  /** Separación entre palabras consecutivas. */
+  /** Separación media entre palabras consecutivas. */
   stagger?: number;
+  /** Cuánto se desordena el escalonado (0 = perfectamente uniforme). */
+  organic?: number;
   /** `true` dispara al montar (hero); `false` al entrar en viewport. */
   immediate?: boolean;
   as?: "h1" | "h2" | "h3" | "p" | "span";
@@ -24,12 +27,18 @@ interface SplitTextProps {
  * Se separa por palabra y no por letra a propósito — partir por letra
  * rompe la ligadura de la serif y el lector de pantalla deletrea.
  * El texto completo va en aria-label y las palabras quedan aria-hidden.
+ *
+ * El escalonado es ORGÁNICO: cada palabra recibe un jitter determinista
+ * sobre su retraso teórico. Un stagger exacto se percibe mecánico; este
+ * respira. Al ser determinista (no `Math.random()`) el servidor y el
+ * cliente calculan lo mismo y no hay mismatch de hidratación.
  */
 export function SplitText({
   text,
   className,
   delay = 0,
   stagger = 0.055,
+  organic = 0.4,
   immediate = false,
   as = "span",
 }: SplitTextProps) {
@@ -47,10 +56,9 @@ export function SplitText({
       className={cn("inline-block", className)}
       initial="hidden"
       {...animateProps}
-      variants={{
-        hidden: {},
-        visible: { transition: { staggerChildren: stagger, delayChildren: delay } },
-      }}
+      // Sin staggerChildren: cada palabra se agenda sola con su propio
+      // delay orgánico (ver el variant de más abajo).
+      variants={{ hidden: {}, visible: {} }}
     >
       {words.map((word, i) => (
         <span
@@ -68,7 +76,15 @@ export function SplitText({
             className="inline-block"
             variants={{
               hidden: { y: "110%", opacity: 0 },
-              visible: { y: "0%", opacity: 1, transition: { duration: 0.9, ease: EASE_LUX } },
+              visible: {
+                y: "0%",
+                opacity: 1,
+                transition: {
+                  duration: 0.9,
+                  ease: EASE_LUX,
+                  delay: delay + organicDelay(i, stagger, organic),
+                },
+              },
             }}
           >
             {word}

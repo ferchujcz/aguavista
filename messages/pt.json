@@ -23,7 +23,6 @@
     "nosotros": "Sobre",
     "amenities": "Amenities",
     "lotes": "Lotes",
-    "testimonios": "Depoimentos",
     "contacto": "Contato",
     "faq": "Perguntas frequentes",
     "cta": "Consultar"
@@ -66,37 +65,48 @@
     "items": {
       "golf": {
         "title": "Golfe",
-        "description": "Campo profissional de 18 buracos com driving range e academia."
+        "description": "Campo profissional de 18 buracos com driving range e academia.",
+        "descriptionLong": "Dezoito buracos par 72 desenhados para aproveitar o desnível natural do terreno em direção ao rio. Driving range iluminado, putting green, academia com professores certificados e club house com vestiários e guarda-tacos. Os proprietários jogam sem green fee e sem reserva prévia durante a semana."
       },
       "nautica": {
         "title": "Náutica",
-        "description": "Marina privada com atracadouros e acesso direto ao Rio Paraná."
+        "description": "Marina privada com atracadouros e acesso direto ao Rio Paraná.",
+        "descriptionLong": "Marina privada com atracadouros para embarcações de até 12 metros, rampa de lançamento própria, garagem náutica coberta e bomba de combustível dentro do condomínio. Acesso direto ao canal principal do Paraná: em vinte minutos você está navegando em águas abertas."
       },
       "playa": {
         "title": "Praia",
-        "description": "Praia privada de areia às margens do rio, com serviço de bar."
+        "description": "Praia privada de areia às margens do rio, com serviço de bar.",
+        "descriptionLong": "Trezentos metros de areia trazida e mantida na margem do rio, com guarda-sóis, espreguiçadeiras e serviço de bar e refeições na temporada. Área de banho delimitada, salva-vidas no verão e um setor separado para a brincadeira das crianças."
       },
       "tenis": {
         "title": "House do Tênis",
-        "description": "Quadras de saibro iluminadas e club house exclusivo."
+        "description": "Quadras de saibro iluminadas e club house exclusivo.",
+        "descriptionLong": "Quatro quadras de saibro com iluminação LED para jogar à noite e duas de piso rápido. O club house tem vestiários, academia funcional, lanchonete e um terraço com vista direta para as quadras centrais."
       },
       "spa": {
         "title": "Spa & Bem-estar",
-        "description": "Circuito de hidroterapia, salas de massagem e academia equipada."
+        "description": "Circuito de hidroterapia, salas de massagem e academia equipada.",
+        "descriptionLong": "Circuito de hidroterapia completo com piscina aquecida, sauna seca, banho de vapor e ducha escocesa. Três salas de massagem, sala de tratamentos faciais e uma academia equipada com aparelhos de última geração e espaço para aulas funcionais."
       },
       "aeropuerto": {
         "title": "Aeroporto executivo",
-        "description": "Pista de pouso privada e hangares dentro do condomínio."
+        "description": "Pista de pouso privada e hangares dentro do condomínio.",
+        "descriptionLong": "Pista asfaltada de 1.200 metros habilitada para aviação geral, com balizamento noturno, biruta e frequência própria. Hangares para aluguel ou venda e pátio de estacionamento. Doze minutos de voo desde Assunção."
       },
       "jardin": {
         "title": "Jardim japonês",
-        "description": "Paisagismo, água e calma para caminhar sem pressa."
+        "description": "Paisagismo, água e calma para caminhar sem pressa.",
+        "descriptionLong": "Um hectare de paisagismo japonês com lago artificial, ponte vermelha, trilhas de pedra e mais de quarenta espécies escolhidas para florescer em épocas diferentes do ano. Pensado para caminhar cedo ou ao entardecer, sem barulho nem trânsito."
       },
       "agua": {
         "title": "Estação de tratamento",
-        "description": "Infraestrutura própria de água potável para todo o condomínio."
+        "description": "Infraestrutura própria de água potável para todo o condomínio.",
+        "descriptionLong": "Estação de tratamento própria com captação no rio, filtragem multicamada, cloração automática e análise bacteriológica mensal. Dois reservatórios elevados garantem pressão constante em todo o condomínio e reserva para setenta e duas horas de consumo."
       }
-    }
+    },
+    "open": "Ver detalhes de {name}",
+    "close": "Fechar detalhes",
+    "hint": "Toque para ver os detalhes"
   },
   "comingSoon": {
     "badge": "Em breve",
@@ -117,14 +127,6 @@
       }
     },
     "cta": "Quero ser avisado"
-  },
-  "testimonials": {
-    "kicker": "Depoimentos",
-    "title": "Quem já mora aqui",
-    "subtitle": "Histórias reais de famílias e sócios do AguaVista.",
-    "prev": "Depoimento anterior",
-    "next": "Próximo depoimento",
-    "goTo": "Ir para o depoimento {number}"
   },
   "contact": {
     "kicker": "Contato",

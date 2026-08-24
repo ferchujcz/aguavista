@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -73,38 +74,25 @@ export function Navbar() {
           aria-label={tc("menu")}
           className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between gap-6 px-5 md:h-20 md:px-10"
         >
-          {/* ── Marca ── */}
+          {/* ── Marca ──
+              Logo oficial AguaVista + Solari. El PNG es 1210x226 y trae
+              alfa, asi que funciona sobre el video del hero y sobre el
+              vidrio del navbar sin recorte. `priority` porque queda
+              visible desde el primer scroll y sin el se ve entrar tarde. */}
           <a
             href="#inicio"
-            className="group flex shrink-0 items-center gap-2.5"
-            aria-label="AguaVista"
+            className="group flex shrink-0 items-center"
+            aria-label="AguaVista — Inicio"
           >
-            <svg width="26" height="26" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-              <circle
-                cx="50"
-                cy="50"
-                r="44"
-                stroke="var(--av-lux)"
-                strokeWidth="3"
-                className="opacity-60 transition-opacity duration-500 group-hover:opacity-100"
-              />
-              <path
-                d="M26 58c8-9 16-9 24 0s16 9 24 0"
-                stroke="var(--av-vivo)"
-                strokeWidth="6"
-                strokeLinecap="round"
-              />
-              <path
-                d="M32 42l18-14 18 14"
-                stroke="var(--av-lux-light)"
-                strokeWidth="5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span className="font-display text-lg font-light uppercase tracking-[0.3em] text-ink transition-colors duration-300 group-hover:text-lux-light md:text-xl">
-              AguaVista
-            </span>
+            <Image
+              src="/logo-solari.png"
+              alt="AguaVista Solari"
+              width={1210}
+              height={226}
+              priority
+              sizes="(max-width: 768px) 150px, 190px"
+              className="h-8 w-auto object-contain transition-opacity duration-300 group-hover:opacity-85 md:h-9"
+            />
           </a>
 
           {/* ── Links desktop ── */}

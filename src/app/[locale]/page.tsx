@@ -6,14 +6,15 @@ import { siteConfig } from "@/config/site";
 import { Hero } from "@/components/sections/Hero";
 import { Amenities } from "@/components/sections/Amenities";
 import { Lotes } from "@/components/sections/Lotes";
-import { Testimonials } from "@/components/sections/Testimonials";
 import { Contact } from "@/components/sections/Contact";
 import { Faq } from "@/components/sections/Faq";
 import { ZoomParallax } from "@/components/ui/zoom-parallax";
 import VerticalReels from "@/components/lifestyle/VerticalReels";
 import { ComingSoon } from "@/components/sections/ComingSoon";
 import { MapSkeleton } from "@/components/ui/Skeleton";
-import { SHOW_SALES_SECTION, TESTIMONIALS_PUBLISHED } from "@/config/features";
+import { SHOW_SALES_SECTION } from "@/config/features";
+import { posterFor } from "@/config/media";
+import { getSettings } from "@/lib/settings";
 
 /**
  * El masterplan arrastra el SDK de Supabase y un canvas pesado. Cargarlo
@@ -51,6 +52,12 @@ export default async function HomePage({
   const t = await getTranslations({ locale, namespace: "faq" });
   const tm = await getTranslations({ locale, namespace: "metadata" });
   const faqItems = t.raw("items") as FaqItem[];
+
+  /* Medios reemplazables desde /admin/media. Si no hay Supabase esto
+     devuelve los archivos de /public, así que no agrega un punto de
+     falla: el peor caso es exactamente el comportamiento anterior. */
+  const media = await getSettings();
+  const reels = [media.reel_1, media.reel_2, media.reel_3, media.reel_4];
 
   /* Datos estructurados. El bloque FAQPage habilita el acordeón
      desplegable en los resultados de Google; RealEstateAgent + geo
@@ -108,7 +115,7 @@ export default async function HomePage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
-      <Hero />
+      <Hero video={media.hero_video} poster={media.hero_poster} />
 
       <ZoomParallax
         images={[
@@ -122,8 +129,8 @@ export default async function HomePage({
         ]}
       />
 
-      <Amenities />
-      <VerticalReels />
+      <Amenities locale={locale as Locale} />
+      <VerticalReels reels={reels} posters={reels.map(posterFor)} />
       <Lotes />
 
       {/* Masterplan interactivo: apagado hasta integrar la navegación
@@ -136,10 +143,6 @@ export default async function HomePage({
       ) : (
         <ComingSoon />
       )}
-
-      {/* Testimonios: ocultos mientras src/data/testimonials.ts tenga
-          contenido de relleno. Ver TESTIMONIALS_PUBLISHED. */}
-      {TESTIMONIALS_PUBLISHED && <Testimonials />}
 
       <Contact />
       <Faq />

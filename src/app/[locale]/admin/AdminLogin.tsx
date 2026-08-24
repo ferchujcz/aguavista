@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { LockKeyhole } from "lucide-react";
 import { adminLogin, type LoginState } from "@/app/actions/admin-auth";
@@ -21,10 +22,16 @@ const MESSAGES: Record<NonNullable<LoginState["error"]>, string> = {
  * envía el formulario a una server action. Todo lo sensible vive en
  * src/lib/admin-auth.ts, que es `server-only`.
  */
-export function AdminLogin() {
+export function AdminLogin({ configured = true }: { configured?: boolean }) {
+  // Destino tras autenticar: la misma URL que se quiso abrir, para que
+  // entrar directo a /es/admin/media no rebote siempre a la bandeja.
+  // La action lo valida contra una lista blanca antes de usarlo.
+  const pathname = usePathname();
   const [state, formAction, isPending] = useActionState<LoginState, FormData>(
     adminLogin,
-    { error: null }
+    // Si el entorno no tiene las variables, se avisa antes de que el
+    // usuario escriba una contrasena que nunca va a poder validarse.
+    { error: configured ? null : "unconfigured" }
   );
 
   return (
@@ -44,6 +51,8 @@ export function AdminLogin() {
         <p className="mt-2 font-sans text-[11px] uppercase tracking-[0.2em] text-ink-faint">
           AguaVista · Masterplan
         </p>
+
+        <input type="hidden" name="next" value={pathname} />
 
         <label htmlFor="admin-password" className="sr-only">
           Contraseña de administrador

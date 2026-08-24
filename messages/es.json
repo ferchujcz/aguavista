@@ -23,7 +23,6 @@
     "nosotros": "Nosotros",
     "amenities": "Amenities",
     "lotes": "Lotes",
-    "testimonios": "Testimonios",
     "contacto": "Contacto",
     "faq": "Preguntas frecuentes",
     "cta": "Consultar"
@@ -66,37 +65,48 @@
     "items": {
       "golf": {
         "title": "Golf",
-        "description": "Cancha profesional de 18 hoyos con driving range y academia."
+        "description": "Cancha profesional de 18 hoyos con driving range y academia.",
+        "descriptionLong": "Dieciocho hoyos par 72 diseñados para aprovechar el desnivel natural del terreno hacia el río. Driving range iluminado, putting green, academia con profesores certificados y club house con vestuarios y guardapalos. Los propietarios juegan sin green fee y sin reserva previa entre semana."
       },
       "nautica": {
         "title": "Náutica",
-        "description": "Marina privada con amarras y acceso directo al Río Paraná."
+        "description": "Marina privada con amarras y acceso directo al Río Paraná.",
+        "descriptionLong": "Marina privada con amarras para embarcaciones de hasta 12 metros, rampa de botado propia, guardería náutica techada y surtidor de combustible dentro del predio. Acceso directo al canal principal del Paraná: en veinte minutos estás navegando aguas abiertas."
       },
       "playa": {
         "title": "Playa",
-        "description": "Playa privada de arena sobre el río, con servicio de bar."
+        "description": "Playa privada de arena sobre el río, con servicio de bar.",
+        "descriptionLong": "Trescientos metros de arena traída y mantenida sobre la costa del río, con sombrillas, reposeras y servicio de bar y comidas durante la temporada. Zona de baño delimitada, guardavidas en verano y un sector separado para juegos de los chicos."
       },
       "tenis": {
         "title": "House del Tenis",
-        "description": "Canchas de polvo de ladrillo iluminadas y club house propio."
+        "description": "Canchas de polvo de ladrillo iluminadas y club house propio.",
+        "descriptionLong": "Cuatro canchas de polvo de ladrillo con iluminación LED para jugar de noche y dos de superficie rápida. El club house tiene vestuarios, gimnasio funcional, cantina y una terraza que da directamente sobre las canchas centrales."
       },
       "spa": {
         "title": "Spa & Bienestar",
-        "description": "Circuito húmedo, sala de masajes y gimnasio equipado."
+        "description": "Circuito húmedo, sala de masajes y gimnasio equipado.",
+        "descriptionLong": "Circuito húmedo completo con piscina climatizada, sauna seco, baño de vapor y ducha escocesa. Tres salas de masajes, sala de tratamientos faciales y un gimnasio equipado con máquinas de última generación y espacio para clases funcionales."
       },
       "aeropuerto": {
         "title": "Aeropuerto ejecutivo",
-        "description": "Pista de aterrizaje privada y hangares dentro del predio."
+        "description": "Pista de aterrizaje privada y hangares dentro del predio.",
+        "descriptionLong": "Pista asfaltada de 1.200 metros habilitada para aviación general, con balizamiento nocturno, manga de viento y frecuencia propia. Hangares en alquiler o venta y plataforma de estacionamiento. Doce minutos de vuelo desde Asunción."
       },
       "jardin": {
         "title": "Jardín japonés",
-        "description": "Paisajismo, agua y calma para caminar sin apuro."
+        "description": "Paisajismo, agua y calma para caminar sin apuro.",
+        "descriptionLong": "Un hectárea de paisajismo japonés con lago artificial, puente rojo, senderos de piedra y más de cuarenta especies seleccionadas para florecer en distintas épocas del año. Pensado para caminar temprano o al atardecer, sin ruido ni tránsito."
       },
       "agua": {
         "title": "Planta potabilizadora",
-        "description": "Infraestructura propia de agua potable para todo el condominio."
+        "description": "Infraestructura propia de agua potable para todo el condominio.",
+        "descriptionLong": "Planta potabilizadora propia con toma sobre el río, filtrado multicapa, cloración automática y análisis bacteriológico mensual. Dos tanques elevados garantizan presión constante en todo el predio y reserva para setenta y dos horas de consumo."
       }
-    }
+    },
+    "open": "Ver detalle de {name}",
+    "close": "Cerrar detalle",
+    "hint": "Tocá para ver el detalle"
   },
   "comingSoon": {
     "badge": "Próximamente",
@@ -117,14 +127,6 @@
       }
     },
     "cta": "Quiero que me avisen"
-  },
-  "testimonials": {
-    "kicker": "Testimonios",
-    "title": "Los que ya viven acá",
-    "subtitle": "Historias reales de familias y socios de AguaVista.",
-    "prev": "Testimonio anterior",
-    "next": "Testimonio siguiente",
-    "goTo": "Ir al testimonio {number}"
   },
   "contact": {
     "kicker": "Contacto",

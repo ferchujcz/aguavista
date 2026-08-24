@@ -1,38 +1,16 @@
-import type { Metadata } from "next";
-import { setRequestLocale } from "next-intl/server";
-import type { Locale } from "@/i18n/routing";
-import { hasValidSession } from "@/lib/admin-auth";
-import { AdminLogin } from "./AdminLogin";
-import { AdminPanel } from "./AdminPanel";
-
-export const metadata: Metadata = {
-  title: "Centro de Mando",
-  // Aunque robots.ts ya lo excluye, el meta cubre el caso de que alguien
-  // enlace la URL directamente desde afuera.
-  robots: { index: false, follow: false, nocache: true },
-};
+import { canReadAdminData } from "@/lib/admin-auth";
+import { AdminPanel } from "../AdminPanel";
 
 /**
- * Puerta del panel de administración.
+ * Herramienta de mapeo 2D y tours 360 del masterplan.
  *
- * Es un SERVER component a propósito: la validación de la sesión lee una
- * cookie httpOnly firmada con HMAC y nunca cruza al cliente. Si la sesión
- * no es válida, el árbol del panel directamente no se serializa en la
- * respuesta — no es un `display:none`, el HTML del panel no existe.
- *
- * Reemplaza al `if (pinInput === '1234')` que vivía en un client
- * component y viajaba en el bundle de JavaScript.
+ * El chequeo de sesion se repite aca aunque el layout ya lo haga: los
+ * segmentos hermanos renderizan en paralelo, asi que sin esto el cuerpo
+ * de la pagina se ejecuta igual en una request sin cookie. Ver
+ * canReadAdminData() en src/lib/admin-auth.ts.
  */
-export default async function AdminPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  setRequestLocale(locale as Locale);
-
-  const authorized = await hasValidSession();
-  if (!authorized) return <AdminLogin />;
+export default async function MasterplanPage() {
+  if (!(await canReadAdminData())) return null;
 
   return <AdminPanel />;
 }

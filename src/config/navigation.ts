@@ -1,5 +1,3 @@
-import { TESTIMONIALS_PUBLISHED } from "./features";
-
 /**
  * Enlaces de navegación, compartidos por el navbar, el drawer mobile y
  * el footer.
@@ -11,24 +9,11 @@ import { TESTIMONIALS_PUBLISHED } from "./features";
  *
  * `key` es la clave de traducción bajo el namespace `nav`.
  */
-
-interface NavLinkDef {
-  key: string;
-  href: string;
-  /** Si es false, el enlace no se renderiza en ningún menú. */
-  enabled?: boolean;
-}
-
-const ALL_LINKS: readonly NavLinkDef[] = [
+export const NAV_LINKS = [
   { key: "inicio", href: "#inicio" },
   { key: "amenities", href: "#amenities" },
   { key: "lotes", href: "#lotes" },
-  // El ancla solo existe cuando la sección se renderiza; si no, el link
-  // llevaría a la nada y el scroll-spy nunca lo marcaría.
-  { key: "testimonios", href: "#testimonios", enabled: TESTIMONIALS_PUBLISHED },
   { key: "faq", href: "#faq" },
-];
-
-export const NAV_LINKS = ALL_LINKS.filter((l) => l.enabled !== false);
+] as const;
 
 export type NavLink = (typeof NAV_LINKS)[number];

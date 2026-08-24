@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogOut } from 'lucide-react';
 
-import { adminLogout } from '@/app/actions/admin-auth';
 import type {
   EditingLote,
   Hotspot,
@@ -382,27 +380,10 @@ export function AdminPanel() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#0C0A09] text-white overflow-hidden">
+    <div className="flex flex-col md:flex-row bg-[color:var(--av-base)] text-white overflow-hidden h-screen">
 
       {/* ── BARRA LATERAL ── */}
       <aside className="w-full md:w-[400px] bg-[#1C1917] border-r border-[#292524] flex flex-col h-screen shrink-0 relative z-50">
-        <div className="p-4 border-b border-[#292524] flex items-center justify-between gap-3">
-          <span className="font-[family-name:var(--font-cormorant)] text-lg text-[color:var(--av-lux)]">
-            Centro de Mando
-          </span>
-          {/* La sesión se cierra en el servidor: borra la cookie httpOnly.
-              No hay nada que limpiar del lado del cliente. */}
-          <form action={adminLogout}>
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-3 py-2 text-[10px] uppercase tracking-widest text-gray-400 border border-[#292524] hover:text-[color:var(--av-vivo)] hover:border-[color:var(--av-vivo)] transition-colors"
-            >
-              <LogOut className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
-              Salir
-            </button>
-          </form>
-        </div>
-
         <div className="p-4 border-b border-[#292524] flex gap-2">
           <button onClick={() => { setAdminTab('2D'); setMode('VIEW'); setHotspotModal(null); setIsAddingHotspot(false); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '2D' ? 'bg-blue-600 text-white' : 'bg-black text-gray-400 border border-[#292524]'}`}>Mapeo 2D</button>
           <button onClick={() => { setAdminTab('360'); setMode('VIEW'); setHotspotModal(null); setIsAddingHotspot(false); }} className={`flex-1 py-3 text-[10px] uppercase font-bold tracking-widest transition-colors ${adminTab === '360' ? 'bg-[#C9A962] text-black' : 'bg-black text-gray-400 border border-[#292524]'}`}>Tours 360</button>

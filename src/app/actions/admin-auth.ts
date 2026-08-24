@@ -1,7 +1,9 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { locales } from "@/i18n/routing";
 import {
   clearAttempts,
   createSession,
@@ -15,6 +17,17 @@ import {
 export type LoginState = {
   error: "credentials" | "locked" | "unconfigured" | null;
 };
+
+/**
+ * Rutas a las que el login puede mandar despues de autenticar.
+ *
+ * El destino lo propone el cliente (campo `next`), asi que se valida
+ * contra esta lista blanca: aceptar el valor crudo seria un
+ * open-redirect — bastaria un enlace al login con
+ * `next=https://otro-sitio` para rebotar al usuario recien logueado
+ * fuera del dominio.
+ */
+const SAFE_NEXT = new RegExp(`^/(${locales.join("|")})/admin(?:/[a-z-]+)?$`);
 
 async function clientIp(): Promise<string> {
   const h = await headers();
@@ -56,10 +69,22 @@ export async function adminLogin(
 
   clearAttempts(ip);
   await createSession();
-  // Fuerza a que el server component de /admin se vuelva a evaluar y
-  // esta vez encuentre la sesión válida.
-  revalidatePath("/[locale]/admin", "page");
-  return { error: null };
+
+  // revalidatePath sola no alcanzaba de forma confiable: el que decide
+  // mostrar el login es el LAYOUT, y invalidar el segmento "page" no
+  // garantiza que el layout se vuelva a evaluar en la respuesta de la
+  // action. El redirect fuerza una navegación real, que re-ejecuta el
+  // árbol entero — ahí el layout encuentra la cookie recién creada y
+  // sirve el panel. Sin esto el riesgo es el peor de todos: la
+  // contraseña era correcta y la pantalla no cambia.
+  revalidatePath("/[locale]/admin", "layout");
+
+  const proposed = String(formData.get("next") ?? "");
+  const target = SAFE_NEXT.test(proposed) ? proposed : "/es/admin";
+
+  // redirect() lanza NEXT_REDIRECT y su tipo de retorno es `never`, así
+  // que no hace falta devolver un LoginState después de esta línea.
+  redirect(target);
 }
 
 export async function adminLogout(): Promise<void> {

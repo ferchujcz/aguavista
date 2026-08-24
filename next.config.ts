@@ -22,11 +22,21 @@ const nextConfig: NextConfig = {
     // Next 16 solo acepta los valores de `quality` declarados aca; cualquier
     // otro cae silenciosamente a 75. Estos son los que usan los componentes.
     qualities: [55, 62, 70, 72, 75],
+    // Imagenes subidas desde el panel: viven en el Storage de Supabase.
+    // Sin esta entrada, next/image rechaza la URL remota.
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+    ],
   },
 
   experimental: {
-    // Tree-shake por ícono en vez de importar el barrel entero de lucide.
+    // Tree-shake por icono en vez de importar el barrel entero de lucide.
     optimizePackageImports: ["lucide-react", "framer-motion"],
+    serverActions: {
+      // El panel sube micro-loops de hasta ~5 MB por server action; el
+      // limite por defecto (1 MB) los rechazaba con un error opaco.
+      bodySizeLimit: "25mb",
+    },
   },
 
   async headers() {

@@ -17,14 +17,3 @@
  */
 export const SHOW_SALES_SECTION = false;
 
-/**
- * Sección de testimonios.
- *
- * APAGADA hasta que se carguen las citas reales y autorizadas en
- * src/data/testimonials.ts (hoy tiene texto de relleno y nombres
- * vacíos). El flag existe para que ese relleno no pueda salir a
- * producción por descuido.
- *
- * Para prenderla: completar el array y poner `true`.
- */
-export const TESTIMONIALS_PUBLISHED = false;

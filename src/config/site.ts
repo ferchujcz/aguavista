@@ -4,22 +4,11 @@
  * botón de WhatsApp) sale de acá para que no se desincronice.
  *
  * ╔══════════════════════════════════════════════════════════════════╗
- * ║  TODO — DATOS PENDIENTES DE REEMPLAZO                            ║
- * ║                                                                  ║
- * ║  Los valores marcados con PENDIENTE son provisorios. Cambiá los  ║
- * ║  de abajo y listo: se propagan solos al footer, a la sección de  ║
- * ║  contacto, al botón flotante de WhatsApp, al JSON-LD de Google   ║
- * ║  y a los enlaces del drawer mobile.                              ║
- * ║                                                                  ║
- * ║  Checklist:                                                      ║
- * ║   [ ] contact.phone      teléfono con formato legible            ║
- * ║   [ ] contact.phoneRaw   el mismo, solo dígitos y +              ║
- * ║   [ ] contact.whatsapp   solo dígitos, sin + ni espacios         ║
- * ║   [ ] contact.email                                              ║
- * ║   [ ] contact.address    dirección real del predio               ║
- * ║   [ ] social[].href      URL exacta de cada perfil               ║
- * ║   [ ] geo                coordenadas reales (Google Maps →       ║
- * ║                          clic derecho sobre el predio)           ║
+ * ║  TODO — LO ÚNICO QUE SIGUE PENDIENTE                             ║
+ * ║   [ ] contact.address   dirección postal real del predio         ║
+ * ║   [ ] geo               coordenadas reales (Google Maps → clic   ║
+ * ║                         derecho sobre la entrada → copiar)       ║
+ * ║  Ambas alimentan el JSON-LD de negocio local que lee Google.     ║
  * ╚══════════════════════════════════════════════════════════════════╝
  */
 
@@ -39,26 +28,35 @@ export const siteConfig = {
   ogImage: "/og/aguavista-og.jpg",
 
   contact: {
-    // PENDIENTE — formato visible en pantalla
-    phone: "+595 985 123 456",
-    // PENDIENTE — para el enlace tel:, solo + y dígitos
-    phoneRaw: "+595985123456",
-    // PENDIENTE — para wa.me/, solo dígitos (sin +, sin espacios)
-    whatsapp: "595985123456",
-    // PENDIENTE
-    email: "info@aguavista.com.py",
-    // PENDIENTE
+    /** Formato visible en pantalla. */
+    phone: "+595 982 190 911",
+    /** Para el enlace tel:. Solo + y dígitos. */
+    phoneRaw: "+595982190911",
+    /** Para wa.me/. Solo dígitos, sin + ni espacios. */
+    whatsapp: "595982190911",
+    email: "comercial@aguavista.com.py",
+    // PENDIENTE — dirección postal real del predio.
     address: "Ruta PY02 km 32, Paraguarí, Paraguay",
   },
 
-  /* PENDIENTE — reemplazar cada href por la URL exacta del perfil.
-     Para quitar una red que no se use, borrá su objeto: los íconos del
-     footer, del contacto y del drawer se recalculan solos. */
+  /* Para quitar una red que no se use, borrá su objeto: los íconos del
+     footer, de la sección de contacto y del drawer se recalculan solos. */
   social: [
-    { name: "Instagram", href: "https://instagram.com/aguavista", icon: "instagram" },
-    { name: "Facebook", href: "https://facebook.com/aguavista", icon: "facebook" },
-    { name: "YouTube", href: "https://youtube.com/@aguavista", icon: "youtube" },
-    { name: "LinkedIn", href: "https://linkedin.com/company/aguavista", icon: "linkedin" },
+    {
+      name: "Instagram",
+      href: "https://www.instagram.com/aguavistapy/",
+      icon: "instagram",
+    },
+    {
+      name: "Facebook",
+      href: "https://www.facebook.com/aguavista/?locale=es_LA",
+      icon: "facebook",
+    },
+    {
+      name: "LinkedIn",
+      href: "https://www.linkedin.com/company/aguavista",
+      icon: "linkedin",
+    },
   ] as const,
 
   /* PENDIENTE — coordenadas aproximadas. Alimentan el JSON-LD de negocio

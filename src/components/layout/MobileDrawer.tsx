@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -101,9 +102,14 @@ export function MobileDrawer({ links, active, onClose }: MobileDrawerProps) {
       />
 
       <div className="relative flex h-[72px] shrink-0 items-center justify-between px-5">
-        <span className="font-display text-lg font-light uppercase tracking-[0.3em] text-ink">
-          AguaVista
-        </span>
+        <Image
+          src="/logo-solari.png"
+          alt="AguaVista Solari"
+          width={1210}
+          height={226}
+          sizes="150px"
+          className="h-8 w-auto object-contain"
+        />
         <button
           ref={closeRef}
           type="button"

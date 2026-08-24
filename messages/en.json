@@ -23,7 +23,6 @@
     "nosotros": "About",
     "amenities": "Amenities",
     "lotes": "Lots",
-    "testimonios": "Testimonials",
     "contacto": "Contact",
     "faq": "FAQ",
     "cta": "Enquire"
@@ -66,37 +65,48 @@
     "items": {
       "golf": {
         "title": "Golf",
-        "description": "Championship 18-hole course with driving range and academy."
+        "description": "Championship 18-hole course with driving range and academy.",
+        "descriptionLong": "Eighteen par-72 holes designed around the natural slope of the land towards the river. Floodlit driving range, putting green, academy with certified instructors, and a club house with changing rooms and club storage. Owners play with no green fee and no booking required on weekdays."
       },
       "nautica": {
         "title": "Marina",
-        "description": "Private marina with moorings and direct access to the Paraná River."
+        "description": "Private marina with moorings and direct access to the Paraná River.",
+        "descriptionLong": "Private marina with moorings for vessels up to 12 metres, its own launch ramp, covered dry storage and a fuel pump inside the grounds. Direct access to the main Paraná channel: twenty minutes and you are in open water."
       },
       "playa": {
         "title": "Beach",
-        "description": "Private sand beach on the river, with full bar service."
+        "description": "Private sand beach on the river, with full bar service.",
+        "descriptionLong": "Three hundred metres of imported, maintained sand along the riverbank, with parasols, loungers and full bar and food service in season. Marked swimming area, lifeguards in summer and a separate zone for children's play."
       },
       "tenis": {
         "title": "Tennis House",
-        "description": "Floodlit clay courts and a dedicated club house."
+        "description": "Floodlit clay courts and a dedicated club house.",
+        "descriptionLong": "Four clay courts with LED floodlighting for night play and two hard courts. The club house has changing rooms, a functional gym, a canteen and a terrace looking straight onto the centre courts."
       },
       "spa": {
         "title": "Spa & Wellness",
-        "description": "Hydrotherapy circuit, treatment rooms and a fully equipped gym."
+        "description": "Hydrotherapy circuit, treatment rooms and a fully equipped gym.",
+        "descriptionLong": "Full hydrotherapy circuit with heated pool, dry sauna, steam room and Scottish shower. Three massage rooms, a facial treatment room and a gym fitted with latest-generation equipment plus space for functional classes."
       },
       "aeropuerto": {
         "title": "Executive airport",
-        "description": "Private airstrip and hangars inside the community."
+        "description": "Private airstrip and hangars inside the community.",
+        "descriptionLong": "A 1,200-metre paved runway approved for general aviation, with night lighting, wind sock and its own frequency. Hangars for rent or purchase and an apron for parking. Twelve minutes' flight from Asunción."
       },
       "jardin": {
         "title": "Japanese garden",
-        "description": "Landscaping, water and quiet for an unhurried walk."
+        "description": "Landscaping, water and quiet for an unhurried walk.",
+        "descriptionLong": "One hectare of Japanese landscaping with an artificial lake, red bridge, stone paths and more than forty species chosen to flower at different times of the year. Made for an early walk or one at dusk, with no noise and no traffic."
       },
       "agua": {
         "title": "Water treatment plant",
-        "description": "Our own drinking water infrastructure serving the whole community."
+        "description": "Our own drinking water infrastructure serving the whole community.",
+        "descriptionLong": "Our own water treatment plant drawing from the river, with multi-layer filtration, automatic chlorination and monthly bacteriological testing. Two elevated tanks guarantee constant pressure across the whole property and seventy-two hours of reserve."
       }
-    }
+    },
+    "open": "View details for {name}",
+    "close": "Close details",
+    "hint": "Tap to see the details"
   },
   "comingSoon": {
     "badge": "Coming soon",
@@ -117,14 +127,6 @@
       }
     },
     "cta": "Notify me"
-  },
-  "testimonials": {
-    "kicker": "Testimonials",
-    "title": "The people who already live here",
-    "subtitle": "Real stories from AguaVista families and members.",
-    "prev": "Previous testimonial",
-    "next": "Next testimonial",
-    "goTo": "Go to testimonial {number}"
   },
   "contact": {
     "kicker": "Contact",

@@ -5,38 +5,32 @@ import Image from 'next/image';
 import InkReveal from '@/components/ui/ink-reveal';
 import { LoopVideo } from '@/components/ui/LoopVideo';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 
-export default function VerticalReels() {
-  const reels = ['/reel.mp4', '/reel-1.mp4', '/reel-2.mp4', '/reel-3.mp4'];
+/** Fallback: los cuatro micro-loops que viven en /public. */
+const DEFAULT_REELS = ['/reel.mp4', '/reel-1.mp4', '/reel-2.mp4', '/reel-3.mp4'];
+
+/**
+ * Los cuatro reels llegan por props desde el server component de la
+ * pagina, que los resuelve con getSettings(). Eso permite reemplazarlos
+ * desde /admin/media sin tocar codigo. `posters` viaja aparte porque
+ * derivarlo aca con un replace() rompia para las URLs de Supabase, que
+ * no tienen un .webp hermano.
+ */
+export default function VerticalReels({
+  reels = DEFAULT_REELS,
+  posters,
+}: {
+  reels?: string[];
+  posters?: (string | undefined)[];
+} = {}) {
   const sectionRef = useRef<HTMLElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
 
-  // ── DEBUG FORENSE ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    const logHeights = () => {
-      const section = sectionRef.current;
-      if (!section) return;
-      const sectionH = section.offsetHeight;
-      const winH = window.innerHeight;
-      console.log('[VerticalReels DEBUG]', {
-        'section.offsetHeight': sectionH,
-        'window.innerHeight': winH,
-        'sección > ventana?': sectionH > winH,
-        'ratio sección/ventana': (sectionH / winH).toFixed(2) + 'x',
-      });
-    };
+  // Cada reel viaja junto a su poster para no tener que reconstruir la
+  // ruta dentro del JSX (que es lo que rompia con las URLs remotas).
+  const clips = reels.map((src, i) => ({ src, poster: posters?.[i] }));
 
-    logHeights();
-    window.addEventListener('scroll', logHeights, { passive: true });
-    window.addEventListener('resize', logHeights);
-
-    return () => {
-      window.removeEventListener('scroll', logHeights);
-      window.removeEventListener('resize', logHeights);
-    };
-  }, []);
-  // ── FIN DEBUG ──────────────────────────────────────────────────────────────
 
   // ── PARALLAX DEL TEXTO ────────────────────────────────────────────────────
   // useScroll sobre la sección completa para que el texto se mueva
@@ -201,7 +195,7 @@ export default function VerticalReels() {
           <div className="flex md:hidden gap-3 py-10">
             {/* Columna 1 */}
             <div className="flex flex-col gap-3 w-1/2 mt-8">
-              {[reels[0], reels[2]].map((src) => (
+              {[clips[0], clips[2]].map(({ src, poster }) => (
                 <motion.div
                   key={src}
                   initial={{ opacity: 0, y: 30 }}
@@ -214,7 +208,7 @@ export default function VerticalReels() {
                       cuatro reels decodificando a la vez se comen los 60fps. */}
                   <LoopVideo
                     src={src}
-                    poster={src.replace('.mp4', '-poster.webp')}
+                    poster={poster}
                     className="absolute inset-0 w-full h-full"
                   />
                 </motion.div>
@@ -222,7 +216,7 @@ export default function VerticalReels() {
             </div>
             {/* Columna 2 */}
             <div className="flex flex-col gap-3 w-1/2">
-              {[reels[1], reels[3]].map((src) => (
+              {[clips[1], clips[3]].map(({ src, poster }) => (
                 <motion.div
                   key={src}
                   initial={{ opacity: 0, y: 30 }}
@@ -235,7 +229,7 @@ export default function VerticalReels() {
                       cuatro reels decodificando a la vez se comen los 60fps. */}
                   <LoopVideo
                     src={src}
-                    poster={src.replace('.mp4', '-poster.webp')}
+                    poster={poster}
                     className="absolute inset-0 w-full h-full"
                   />
                 </motion.div>
@@ -247,7 +241,7 @@ export default function VerticalReels() {
           <div className="hidden md:flex gap-8 py-32">
             {/* Columna 1 de Reels (Arranca más abajo) */}
             <div className="flex flex-col gap-10 w-1/2 mt-32">
-              {[reels[0], reels[2]].map((src) => (
+              {[clips[0], clips[2]].map(({ src, poster }) => (
                 <motion.div
                   key={src}
                   initial={{ opacity: 0, y: 40 }}
@@ -260,7 +254,7 @@ export default function VerticalReels() {
                       cuatro reels decodificando a la vez se comen los 60fps. */}
                   <LoopVideo
                     src={src}
-                    poster={src.replace('.mp4', '-poster.webp')}
+                    poster={poster}
                     className="absolute inset-0 w-full h-full"
                   />
                 </motion.div>
@@ -269,7 +263,7 @@ export default function VerticalReels() {
 
             {/* Columna 2 de Reels (Arranca más arriba) */}
             <div className="flex flex-col gap-10 w-1/2">
-              {[reels[1], reels[3]].map((src) => (
+              {[clips[1], clips[3]].map(({ src, poster }) => (
                 <motion.div
                   key={src}
                   initial={{ opacity: 0, y: 40 }}
@@ -282,7 +276,7 @@ export default function VerticalReels() {
                       cuatro reels decodificando a la vez se comen los 60fps. */}
                   <LoopVideo
                     src={src}
-                    poster={src.replace('.mp4', '-poster.webp')}
+                    poster={poster}
                     className="absolute inset-0 w-full h-full"
                   />
                 </motion.div>

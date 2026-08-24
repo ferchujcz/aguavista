@@ -23,27 +23,13 @@ export function CardSkeleton({ className }: { className?: string }) {
   );
 }
 
-/** Placeholder del carrusel de testimonios. */
-export function TestimonialSkeleton() {
+/** Placeholder de una fila de tabla en el panel de administración. */
+export function RowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
-    <div
-      role="status"
-      aria-busy="true"
-      className="av-glass flex flex-col gap-6 rounded-3xl p-8 md:p-10"
-    >
-      <Skeleton className="h-3 w-24" />
-      <div className="flex flex-col gap-3">
-        <Skeleton className="h-5 w-full" />
-        <Skeleton className="h-5 w-11/12" />
-        <Skeleton className="h-5 w-3/4" />
-      </div>
-      <div className="mt-2 flex items-center gap-4">
-        <Skeleton className="size-12 rounded-full" />
-        <div className="flex flex-1 flex-col gap-2">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-3 w-24" />
-        </div>
-      </div>
+    <div role="status" aria-busy="true" className="flex items-center gap-4 py-4">
+      {Array.from({ length: columns }).map((_, i) => (
+        <Skeleton key={i} className="h-3 flex-1" />
+      ))}
     </div>
   );
 }

@@ -6,8 +6,15 @@ import { cn } from "@/lib/utils";
 
 interface LoopVideoProps {
   src: string;
-  /** Poster .webp generado por scripts/optimize-media.mjs. */
-  poster: string;
+  /**
+   * Poster .webp generado por scripts/optimize-media.mjs.
+   *
+   * Opcional porque los videos que se suben desde /admin viven en el
+   * Storage de Supabase y no tienen un .webp hermano; ver posterFor()
+   * en src/lib/settings.ts. Sin poster el <video> arranca en negro
+   * durante el primer buffer, que es mejor que un 404 visible.
+   */
+  poster?: string;
   className?: string;
   /** Clases del <video>. El poster de fondo se maneja aparte. */
   videoClassName?: string;

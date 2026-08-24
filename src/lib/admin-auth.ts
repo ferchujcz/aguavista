@@ -153,3 +153,22 @@ export async function hasValidSession(): Promise<boolean> {
   const store = await cookies();
   return isTokenValid(store.get(SESSION_COOKIE)?.value);
 }
+
+/**
+ * Guard para el CUERPO de cada página del panel.
+ *
+ * El chequeo del layout no alcanza y esto no es paranoia: los segmentos
+ * de una misma ruta se renderizan en paralelo, así que aunque el layout
+ * decida mostrar el login y descartar `children`, la página hija ya
+ * ejecutó su cuerpo — sus consultas incluidas — y el resultado viaja en
+ * el payload RSC de una request sin sesión. Se verificó levantando el
+ * server sin cookie: el encabezado de la bandeja de consultas aparecía
+ * en la respuesta.
+ *
+ * Cada página del panel llama a esto ANTES de consultar la base y corta
+ * con `return null` si da false. Lo que se ve lo sigue decidiendo el
+ * layout; esto solo garantiza que no se lea ni se serialice nada.
+ */
+export async function canReadAdminData(): Promise<boolean> {
+  return hasValidSession();
+}
