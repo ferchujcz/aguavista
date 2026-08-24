@@ -1,6 +1,6 @@
 'use client';
 
-import { useScroll, useTransform, motion, useReducedMotion } from 'framer-motion';
+import { useScroll, useTransform, motion, useInView, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
 import Image from 'next/image';
 
@@ -44,6 +44,25 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
     const scales = [scale4, scale5, scale6, scale5, scale6, scale8, scale9];
 
     /**
+     * Disparador unico del barrido de entrada.
+     *
+     * Se observa el CONTENEDOR de la galeria, no cada foto. Dos razones:
+     *
+     * 1. Un observador por foto no es fiable aca. Las tres ultimas recien
+     *    superan el 15% de visibilidad muy cerca del punto en que la
+     *    seccion se fija arriba; pasado ese punto el `scale` empieza a
+     *    agrandarlas y se van de pantalla, asi que pueden no llegar nunca
+     *    a cruzar el umbral. Medido: a scrollY 1500 estaban en 0.07.
+     *
+     * 2. Es lo que se pidio: el barrido ocurre "al llegar a la seccion",
+     *    de una, y no foto por foto segun donde quede cada una.
+     *
+     * El contenedor mide 150vh, asi que entra en viewport bastante antes
+     * de fijarse: el barrido termina antes de que arranque el zoom.
+     */
+    const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
+
+    /**
      * El texto central se desvanece en el primer tercio del zoom.
      *
      * Antes vivia en `z-0`, debajo de las fotos, asi que en cuanto estas
@@ -52,7 +71,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
      * imagenes se retira: se lee limpio mientras la galeria esta en reposo
      * y libera la pantalla justo cuando el zoom se vuelve protagonista.
      */
-    const centerTextOpacity = useTransform(galleryScroll, [0.04, 0.3], [1, 0]);
+    const centerTextOpacity = useTransform(galleryScroll, [0.10, 0.42], [1, 0]);
 
     return (
         <section ref={mainContainer} className="relative w-full bg-[color:var(--av-base)]">
@@ -148,42 +167,79 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                                 className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${index === 1 ? '[&>div]:!-top-[30vh] [&>div]:!left-[5vw] [&>div]:!h-[30vh] [&>div]:!w-[35vw]' : ''} ${index === 2 ? '[&>div]:!-top-[10vh] [&>div]:!-left-[25vw] [&>div]:!h-[45vh] [&>div]:!w-[20vw]' : ''} ${index === 3 ? '[&>div]:!left-[27.5vw] [&>div]:!h-[25vh] [&>div]:!w-[25vw]' : ''} ${index === 4 ? '[&>div]:!top-[27.5vh] [&>div]:!left-[5vw] [&>div]:!h-[25vh] [&>div]:!w-[20vw]' : ''} ${index === 5 ? '[&>div]:!top-[27.5vh] [&>div]:!-left-[22.5vw] [&>div]:!h-[25vh] [&>div]:!w-[30vw]' : ''} ${index === 6 ? '[&>div]:!top-[22.5vh] [&>div]:!left-[25vw] [&>div]:!h-[15vh] [&>div]:!w-[15vw]' : ''} `}
                             >
                                 {/* ── Reveal de entrada ──
-                                    Disparado por viewport, no por progreso de
-                                    scroll: al llegar la seccion cada foto se
-                                    abre desde su centro hacia los costados
-                                    (clip-path de 50/50 a 0/0) con un
-                                    escalonado organico. El zoom continuo vive
-                                    en el `scale` del padre, asi que los dos
-                                    efectos no se pisan: uno anima clip-path,
-                                    el otro transform. */}
-                                <motion.div
-                                    className="relative h-[25vh] w-[25vw]"
-                                    initial={
-                                        reduceMotion
-                                            ? undefined
-                                            : { clipPath: 'inset(0% 50% 0% 50%)', opacity: 0 }
-                                    }
-                                    whileInView={
-                                        reduceMotion
-                                            ? undefined
-                                            : { clipPath: 'inset(0% 0% 0% 0%)', opacity: 1 }
-                                    }
-                                    viewport={{ once: true, amount: 0.15 }}
-                                    transition={{
-                                        duration: 1.15,
-                                        ease: EASE_LUX,
-                                        delay: organicDelay(index, 0.09),
-                                    }}
-                                >
-                                    <Image
-                                        src={src || '/placeholder.svg'}
-                                        alt={alt || `Parallax image ${index + 1}`}
-                                        fill
-                                        className="object-cover shadow-2xl"
-                                        loading="lazy"
-                                        sizes="(max-width: 768px) 100vw, 33vw"
-                                    />
-                                </motion.div>
+                                    DOS elementos y no uno, a proposito.
+
+                                    El de afuera es el que observa el viewport:
+                                    conserva siempre su tamano real, asi que el
+                                    IntersectionObserver puede verlo. El de
+                                    adentro es el unico que lleva el clip-path.
+
+                                    Fusionarlos —que el mismo nodo tenga el
+                                    `whileInView` y el clip-path inicial— es un
+                                    bloqueo mutuo: `inset(0% 50% 0% 50%)` recorta
+                                    50% por izquierda y 50% por derecha, o sea
+                                    deja el elemento con area CERO, y un elemento
+                                    de area cero nunca intersecta el viewport. El
+                                    disparador no llega a dispararse nunca y la
+                                    foto se queda invisible para siempre. Es
+                                    exactamente lo que habia pasado aca.
+
+                                    El zoom continuo sigue viviendo en el `scale`
+                                    del padre, asi que los dos efectos no se
+                                    pisan: uno anima clip-path, el otro
+                                    transform. Y como el `scale` esta clavado en
+                                    1 hasta que la galeria se fija arriba, la
+                                    secuencia sale sola: primero el barrido
+                                    mientras la seccion sube, despues el zoom. */}
+                                <div className="relative h-[25vh] w-[25vw]">
+                                    {/* El clip-path va en un nodo INTERNO y el
+                                        disparador vive afuera, en la seccion.
+
+                                        No es cosmetico: si el mismo nodo lleva
+                                        el `whileInView` y el clip inicial, se
+                                        bloquean entre si. `inset(0% 50% 0% 50%)`
+                                        recorta 50% por izquierda y 50% por
+                                        derecha, o sea deja el elemento con area
+                                        CERO, y un elemento de area cero nunca
+                                        intersecta el viewport: el disparador no
+                                        llega a dispararse nunca y la foto queda
+                                        invisible para siempre. Es lo que habia
+                                        pasado aca, verificado con un
+                                        IntersectionObserver de control que
+                                        devolvia ratio 0 con la foto entera en
+                                        pantalla.
+
+                                        `initial={false}` con movimiento reducido
+                                        pinta el estado final directo: sin eso el
+                                        variant `hidden` se quedaba aplicado y la
+                                        galeria entera era invisible para quien
+                                        tiene la preferencia activada. */}
+                                    <motion.div
+                                        className="absolute inset-0 overflow-hidden"
+                                        initial={reduceMotion ? false : 'hidden'}
+                                        animate={revealed || reduceMotion ? 'visible' : 'hidden'}
+                                        variants={{
+                                            hidden: { clipPath: 'inset(0% 50% 0% 50%)', opacity: 0 },
+                                            visible: {
+                                                clipPath: 'inset(0% 0% 0% 0%)',
+                                                opacity: 1,
+                                                transition: {
+                                                    duration: 1.15,
+                                                    ease: EASE_LUX,
+                                                    delay: organicDelay(index, 0.09),
+                                                },
+                                            },
+                                        }}
+                                    >
+                                        <Image
+                                            src={src || '/placeholder.svg'}
+                                            alt={alt || `Parallax image ${index + 1}`}
+                                            fill
+                                            className="object-cover shadow-2xl"
+                                            sizes="(max-width: 768px) 100vw, 33vw"
+                                        />
+                                    </motion.div>
+                                </div>
                             </motion.div>
                         );
                     })}

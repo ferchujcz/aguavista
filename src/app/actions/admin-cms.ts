@@ -68,12 +68,22 @@ export async function updateAmenity(formData: FormData): Promise<ActionResult> {
   };
 
   const image = text("image");
-  if (!image) return { ok: false, message: "La imagen es obligatoria." };
+  if (!image) return { ok: false, message: "La portada es obligatoria." };
+
+  /* Galería: el editor manda un campo `gallery` por foto, así que se leen
+     todos con getAll(). Se descartan los vacíos (una fila recién agregada
+     y no completada) y la portada repetida, que si no aparecería dos veces
+     seguidas en el carrusel. */
+  const gallery = formData
+    .getAll("gallery")
+    .map((v) => (typeof v === "string" ? v.trim() : ""))
+    .filter((v, i, all) => v && v !== image && all.indexOf(v) === i);
 
   const { error } = await supabase
     .from("amenities")
     .update({
       image,
+      gallery,
       video: text("video"),
       featured: formData.get("featured") === "on",
       enabled: formData.get("enabled") === "on",

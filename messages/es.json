@@ -104,7 +104,10 @@
     },
     "open": "Ver detalle de {name}",
     "close": "Cerrar detalle",
-    "hint": "Tocá para ver el detalle"
+    "hint": "Tocá para ver el detalle",
+    "prevPhoto": "Foto anterior",
+    "nextPhoto": "Foto siguiente",
+    "goToPhoto": "Ir a la foto {n}"
   },
   "comingSoon": {
     "badge": "Próximamente",

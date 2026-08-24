@@ -9,11 +9,47 @@ import type { ResolvedAmenity } from "@/lib/amenities";
 import { LoopVideo } from "@/components/ui/LoopVideo";
 import { EASE_LUX } from "@/components/motion/Reveal";
 import { organicDelay } from "@/components/motion/SlideUp";
+import { useDragScroll } from "@/hooks/use-drag-scroll";
 import { cn } from "@/lib/utils";
 
 /** Curva del morph entre riel y detalle. Más lenta que un hover normal:
  *  el elemento recorre media pantalla y necesita tiempo para leerse. */
 const MORPH = { type: "spring" as const, stiffness: 210, damping: 30, mass: 0.9 };
+
+/** Botón redondo de navegación, compartido por el riel y el carrusel. */
+function NavButton({
+  onClick,
+  disabled,
+  label,
+  dir,
+  className,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+  dir: "prev" | "next";
+  className?: string;
+}) {
+  const Icon = dir === "prev" ? ChevronLeft : ChevronRight;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={cn(
+        "pointer-events-auto grid size-11 place-items-center rounded-full",
+        "border border-[color:var(--av-glass-brd)] bg-[color:var(--av-base)]/85 text-ink",
+        "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+        "hover:border-[color:var(--av-vivo)] hover:text-vivo",
+        "disabled:pointer-events-none disabled:opacity-0",
+        className
+      )}
+    >
+      <Icon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+    </button>
+  );
+}
 
 /* ── Tarjeta del riel ────────────────────────────────────────────── */
 
@@ -88,6 +124,7 @@ function RailCard({
             src={amenity.image}
             alt={amenity.title}
             fill
+            draggable={false}
             loading={index < 3 ? "eager" : "lazy"}
             sizes="(max-width: 640px) 68vw, (max-width: 768px) 43vw, (max-width: 1024px) 31vw, 292px"
             quality={70}
@@ -117,13 +154,154 @@ function RailCard({
 
           <span
             aria-hidden="true"
-            className="grid size-7 shrink-0 place-items-center rounded-full border border-white/35 text-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 group-hover:border-[color:var(--av-vivo)] group-hover:text-[color:var(--av-vivo)]"
+            className="flex shrink-0 items-center gap-2"
           >
-            <Plus className="size-3.5" strokeWidth={1.75} />
+            {/* Contador de fotos: adelanta que el detalle trae galería. */}
+            {amenity.images.length > 1 && (
+              <span className="font-sans text-[10px] font-light tabular-nums text-white/70">
+                {amenity.images.length}
+              </span>
+            )}
+            <span className="grid size-7 place-items-center rounded-full border border-white/35 text-white transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90 group-hover:border-[color:var(--av-vivo)] group-hover:text-[color:var(--av-vivo)]">
+              <Plus className="size-3.5" strokeWidth={1.75} />
+            </span>
           </span>
         </div>
       </motion.button>
     </motion.li>
+  );
+}
+
+/* ── Carrusel interno del detalle ────────────────────────────────── */
+
+/**
+ * Galería de la ficha: varias fotos de la misma zona.
+ *
+ * Es scroll nativo con snap, igual que el riel de afuera, así que hereda
+ * el swipe táctil y suma el grab & drag con mouse. El índice sale de
+ * medir `scrollLeft`, no de un estado que el código empuja: así los tres
+ * caminos —arrastre, flecha y punto— no pueden desincronizarse entre sí.
+ */
+function AmenityGallery({ amenity }: { amenity: ResolvedAmenity }) {
+  const t = useTranslations("amenities");
+  const { ref, dragging, dragProps } = useDragScroll<HTMLDivElement>();
+  const [index, setIndex] = useState(0);
+  const total = amenity.images.length;
+
+  const onScroll = useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    setIndex(Math.round(el.scrollLeft / el.clientWidth));
+  }, [ref]);
+
+  const goTo = useCallback(
+    (i: number) => {
+      const el = ref.current;
+      if (!el) return;
+      const target = Math.max(0, Math.min(total - 1, i));
+      el.scrollTo({ left: target * el.clientWidth, behavior: "smooth" });
+    },
+    [ref, total]
+  );
+
+  return (
+    <div className="relative size-full">
+      <div
+        ref={ref}
+        onScroll={onScroll}
+        {...dragProps}
+        role="group"
+        aria-roledescription="carrusel"
+        aria-label={t("open", { name: amenity.title })}
+        className={cn(
+          "av-rail flex size-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden",
+          total > 1 && (dragging ? "cursor-grabbing select-none" : "cursor-grab")
+        )}
+      >
+        {amenity.images.map((src, i) => (
+          <div
+            key={src}
+            role="group"
+            aria-roledescription="diapositiva"
+            aria-label={`${i + 1} / ${total}`}
+            className="relative size-full flex-none snap-center"
+          >
+            <Image
+              src={src}
+              alt={i === 0 ? amenity.title : `${amenity.title} — ${i + 1}`}
+              fill
+              draggable={false}
+              // Solo la portada se pide de entrada; las demás cuando el
+              // visitante llega a ellas. Una ficha con cuatro fotos no
+              // debería costar cuatro descargas por abrirla.
+              loading={i === 0 ? "eager" : "lazy"}
+              sizes="(max-width: 768px) 100vw, 640px"
+              quality={78}
+              className="object-cover"
+            />
+
+            {/* El reel pertenece a la portada: se monta solo sobre ella y
+                recién acá, nunca en el riel. */}
+            {i === 0 && amenity.video && (
+              <LoopVideo
+                src={amenity.video}
+                poster={src}
+                className="absolute inset-0 size-full"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Degradado de legibilidad + costura con el panel de texto. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#050D09]/70 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[color:var(--av-surface)]"
+      />
+
+      {total > 1 && (
+        <>
+          {/* Flechas: solo desde md, igual que en el riel. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 left-2 right-2 hidden items-center justify-between md:flex"
+          >
+            <NavButton
+              dir="prev"
+              label={t("prevPhoto")}
+              onClick={() => goTo(index - 1)}
+              disabled={index === 0}
+            />
+            <NavButton
+              dir="next"
+              label={t("nextPhoto")}
+              onClick={() => goTo(index + 1)}
+              disabled={index === total - 1}
+            />
+          </div>
+
+          {/* Puntos. Son botones reales: en mobile, sin flechas, son el
+              único control con teclado y lector de pantalla. */}
+          <div className="absolute inset-x-0 bottom-4 z-10 flex items-center justify-center gap-2">
+            {amenity.images.map((src, i) => (
+              <button
+                key={src}
+                type="button"
+                onClick={() => goTo(i)}
+                aria-label={t("goToPhoto", { n: i + 1 })}
+                aria-current={i === index ? "true" : undefined}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  i === index
+                    ? "w-6 bg-[color:var(--av-vivo)]"
+                    : "w-1.5 bg-white/45 hover:bg-white/75"
+                )}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -189,28 +367,7 @@ function ExpandedCard({
           transition={MORPH}
           className="relative aspect-[16/10] w-full shrink-0 md:aspect-auto md:h-auto md:w-1/2"
         >
-          <Image
-            src={amenity.image}
-            alt={amenity.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 640px"
-            quality={78}
-            className="object-cover"
-          />
-
-          {/* El reel arranca recién acá: en el riel no se descarga nada. */}
-          {amenity.video && (
-            <LoopVideo
-              src={amenity.video}
-              poster={amenity.image}
-              className="absolute inset-0 size-full"
-            />
-          )}
-
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-t from-[#050D09]/70 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[color:var(--av-surface)]"
-          />
+          <AmenityGallery amenity={amenity} />
         </motion.div>
 
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-7 md:p-10">
@@ -250,7 +407,7 @@ function ExpandedCard({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="absolute right-4 top-4 z-10 grid size-10 place-items-center rounded-full border border-[color:var(--av-glass-brd)] bg-[color:var(--av-base)]/60 text-ink backdrop-blur-md transition-colors duration-300 hover:border-[color:var(--av-vivo)] hover:text-vivo"
+          className="absolute right-4 top-4 z-20 grid size-10 place-items-center rounded-full border border-[color:var(--av-glass-brd)] bg-[color:var(--av-base)]/60 text-ink backdrop-blur-md transition-colors duration-300 hover:border-[color:var(--av-vivo)] hover:text-vivo"
         >
           <X className="size-4" strokeWidth={1.5} aria-hidden="true" />
         </motion.button>
@@ -264,21 +421,21 @@ function ExpandedCard({
 /**
  * Riel horizontal de amenities.
  *
- * Es una sola fila que no envuelve: ocho tarjetas del mismo ancho y del
- * mismo `aspect-[4/5]`, desplazables en horizontal. La versión anterior
- * era una grilla de cuatro columnas donde las destacadas ocupaban dos y
- * usaban 16/10, así que se armaban dos filas con alturas distintas —
- * exactamente lo que había que corregir.
+ * Una sola fila que no envuelve: tarjetas del mismo ancho y del mismo
+ * `aspect-[4/5]`, desplazables en horizontal. La versión anterior era una
+ * grilla de cuatro columnas donde las destacadas ocupaban dos y usaban
+ * 16/10, así que se armaban dos filas con alturas distintas.
  *
- * El desplazamiento es scroll nativo (gesto táctil, trackpad y rueda con
- * shift funcionan gratis) y las flechas son solo un atajo para mouse.
+ * Se mueve de cuatro formas: arrastrando con el mouse, con el gesto
+ * táctil, con el trackpad, y con las flechas. Las flechas quedaron como
+ * atajo, no como único camino.
  */
 export function AmenitiesGrid({ items }: { items: ResolvedAmenity[] }) {
   const t = useTranslations("amenities");
   const [activeId, setActiveId] = useState<string | null>(null);
   const active = items.find((a) => a.id === activeId) ?? null;
 
-  const railRef = useRef<HTMLUListElement>(null);
+  const { ref: railRef, dragging, dragProps } = useDragScroll<HTMLUListElement>();
   // `null` = todavía no se midió. En ese estado las flechas no se pintan,
   // así no aparecen y desaparecen en el primer frame.
   const [edges, setEdges] = useState<{ start: boolean; end: boolean } | null>(null);
@@ -296,7 +453,7 @@ export function AmenitiesGrid({ items }: { items: ResolvedAmenity[] }) {
       start: el.scrollLeft > 2,
       end: el.scrollLeft + el.clientWidth < el.scrollWidth - 2,
     });
-  }, []);
+  }, [railRef]);
 
   useEffect(() => {
     measure();
@@ -305,19 +462,22 @@ export function AmenitiesGrid({ items }: { items: ResolvedAmenity[] }) {
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [measure]);
+  }, [measure, railRef]);
 
   /** Avanza o retrocede una tarjeta, midiendo el paso real del riel. */
-  const nudge = useCallback((direction: 1 | -1) => {
-    const el = railRef.current;
-    if (!el) return;
-    const first = el.firstElementChild as HTMLElement | null;
-    // El paso sale del ancho real de una tarjeta más el gap, no de un
-    // número fijo: así sigue cayendo en el snap en cualquier breakpoint.
-    const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
-    const step = first ? first.offsetWidth + gap : el.clientWidth * 0.8;
-    el.scrollBy({ left: step * direction, behavior: "smooth" });
-  }, []);
+  const nudge = useCallback(
+    (direction: 1 | -1) => {
+      const el = railRef.current;
+      if (!el) return;
+      const first = el.firstElementChild as HTMLElement | null;
+      // El paso sale del ancho real de una tarjeta más el gap, no de un
+      // número fijo: así sigue cayendo en el snap en cualquier breakpoint.
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+      const step = first ? first.offsetWidth + gap : el.clientWidth * 0.8;
+      el.scrollBy({ left: step * direction, behavior: "smooth" });
+    },
+    [railRef]
+  );
 
   return (
     <>
@@ -325,6 +485,7 @@ export function AmenitiesGrid({ items }: { items: ResolvedAmenity[] }) {
         <ul
           ref={railRef}
           onScroll={measure}
+          {...dragProps}
           aria-label={t("kicker")}
           /* El margen negativo, más un padding igual y opuesto, hace que el
              riel se desplace de borde a borde del contenedor mientras la
@@ -335,7 +496,10 @@ export function AmenitiesGrid({ items }: { items: ResolvedAmenity[] }) {
             // borde del contenido. Sin esto el snapport arranca en el borde
             // del padding y la primera tarjeta se pegaria al canto de la
             // pantalla, desalineada del encabezado.
-            "scroll-pl-5 py-1 md:-mx-10 md:gap-4 md:px-10 md:scroll-pl-10"
+            "scroll-pl-5 py-1 md:-mx-10 md:gap-4 md:px-10 md:scroll-pl-10",
+            // `select-none` solo mientras se arrastra: fijo, impediría
+            // seleccionar los títulos con el mouse en un uso normal.
+            dragging ? "cursor-grabbing select-none" : "cursor-grab"
           )}
         >
           {items.map((amenity, i) => (
@@ -362,30 +526,36 @@ export function AmenitiesGrid({ items }: { items: ResolvedAmenity[] }) {
             className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden items-center justify-between md:flex"
             aria-hidden="true"
           >
-            {(
-              [
-                ["prev", -1, edges.start, ChevronLeft, "-translate-x-1/2"],
-                ["next", 1, edges.end, ChevronRight, "translate-x-1/2"],
-              ] as const
-            ).map(([key, dir, enabled, Icon, offset]) => (
-              <button
-                key={key}
-                type="button"
-                tabIndex={-1}
-                onClick={() => nudge(dir)}
-                disabled={!enabled}
-                className={cn(
-                  "pointer-events-auto grid size-11 place-items-center rounded-full",
-                  "border border-[color:var(--av-glass-brd)] bg-[color:var(--av-base)]/85 text-ink",
-                  "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
-                  "hover:border-[color:var(--av-vivo)] hover:text-vivo",
-                  "disabled:pointer-events-none disabled:opacity-0",
-                  offset
-                )}
-              >
-                <Icon className="size-4" strokeWidth={1.5} aria-hidden="true" />
-              </button>
-            ))}
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => nudge(-1)}
+              disabled={!edges.start}
+              className={cn(
+                "pointer-events-auto grid size-11 -translate-x-1/2 place-items-center rounded-full",
+                "border border-[color:var(--av-glass-brd)] bg-[color:var(--av-base)]/85 text-ink",
+                "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                "hover:border-[color:var(--av-vivo)] hover:text-vivo",
+                "disabled:pointer-events-none disabled:opacity-0"
+              )}
+            >
+              <ChevronLeft className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              tabIndex={-1}
+              onClick={() => nudge(1)}
+              disabled={!edges.end}
+              className={cn(
+                "pointer-events-auto grid size-11 translate-x-1/2 place-items-center rounded-full",
+                "border border-[color:var(--av-glass-brd)] bg-[color:var(--av-base)]/85 text-ink",
+                "transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                "hover:border-[color:var(--av-vivo)] hover:text-vivo",
+                "disabled:pointer-events-none disabled:opacity-0"
+              )}
+            >
+              <ChevronRight className="size-4" strokeWidth={1.5} aria-hidden="true" />
+            </button>
           </div>
         )}
       </div>

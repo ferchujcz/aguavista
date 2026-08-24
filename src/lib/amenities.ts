@@ -8,7 +8,14 @@ import { locales, type Locale } from "@/i18n/routing";
 /** Amenity ya resuelta para un idioma concreto, lista para renderizar. */
 export interface ResolvedAmenity {
   id: string;
+  /** Portada. Siempre presente; es `images[0]`. */
   image: string;
+  /**
+   * Carrusel completo del detalle: la portada primero y después las fotos
+   * adicionales. Nunca vacío —como mínimo trae la portada— así que el
+   * componente puede recorrerlo sin comprobar nada.
+   */
+  images: string[];
   video: string | null;
   featured: boolean;
   title: string;
@@ -22,6 +29,14 @@ export interface AmenityRow {
   sort_order: number;
   enabled: boolean;
   image: string;
+  /**
+   * Columna `text[]` con las fotos adicionales, sin la portada.
+   *
+   * Es opcional en el tipo a propósito: una base que todavía no corrió la
+   * migración devuelve filas sin esta clave, y el sitio tiene que seguir
+   * funcionando con una sola foto en vez de romper.
+   */
+  gallery?: string[] | null;
   video: string | null;
   featured: boolean;
   title_es: string | null;
@@ -37,6 +52,27 @@ export interface AmenityRow {
 
 /** Columnas traducibles, para armar nombres tipo `title_es` sin castear. */
 export const AMENITY_TEXT_FIELDS = ["title", "description", "description_long"] as const;
+
+/**
+ * Arma el carrusel: portada primero, después las adicionales.
+ *
+ * Filtra vacíos y duplicados. Lo de los duplicados no es teórico: en el
+ * panel es fácil pegar la portada otra vez en la galería, y el carrusel
+ * mostraría la misma foto dos veces seguidas.
+ */
+export function buildImageList(cover: string, gallery?: string[] | null): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of [cover, ...(gallery ?? [])]) {
+    const url = raw?.trim();
+    if (!url || seen.has(url)) continue;
+    seen.add(url);
+    out.push(url);
+  }
+  // Si la portada viniera vacía, `out` podría quedar sin nada; el llamador
+  // garantiza que `cover` existe, pero el fallback evita un carrusel de 0.
+  return out.length ? out : [cover];
+}
 
 function pick(row: AmenityRow, field: string, locale: Locale): string {
   const value = (row as unknown as Record<string, string | null>)[`${field}_${locale}`];
@@ -74,6 +110,7 @@ export async function getAmenities(locale: Locale): Promise<ResolvedAmenity[]> {
       return (data as AmenityRow[]).map((row) => ({
         id: row.id,
         image: row.image,
+        images: buildImageList(row.image, row.gallery),
         video: row.video,
         featured: row.featured,
         title: pick(row, "title", locale),
@@ -87,6 +124,7 @@ export async function getAmenities(locale: Locale): Promise<ResolvedAmenity[]> {
   return AMENITIES.map((a) => ({
     id: a.id,
     image: a.image,
+    images: buildImageList(a.image, a.gallery ? [...a.gallery] : null),
     video: a.video ?? null,
     featured: Boolean(a.featured),
     title: t(`${a.id}.title`),
@@ -116,6 +154,7 @@ export async function buildSeedRows(): Promise<AmenityRow[]> {
       sort_order: index,
       enabled: true,
       image: a.image,
+      gallery: a.gallery ? [...a.gallery] : [],
       video: a.video ?? null,
       featured: Boolean(a.featured),
     };

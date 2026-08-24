@@ -6,6 +6,7 @@ import type { AmenityRow } from "@/lib/amenities";
 import { seedAmenities, updateAmenity } from "@/app/actions/admin-cms";
 import { AdminButton, AdminField, EmptyState, PageHeader } from "./AdminUI";
 import { MediaInput, type Feedback } from "./MediaInput";
+import { GalleryInput } from "./GalleryInput";
 import { cn } from "@/lib/utils";
 
 /* ── Ficha de una amenity ────────────────────────────────────────── */
@@ -53,6 +54,11 @@ function AmenityCard({ row }: { row: AmenityRow }) {
               oculta
             </span>
           )}
+          {row.gallery && row.gallery.length > 0 && (
+            <span className="rounded-full border border-[color:var(--av-border)] px-2.5 py-1 font-sans text-[10px] uppercase tracking-[0.14em] text-ink-muted">
+              {row.gallery.length + 1} fotos
+            </span>
+          )}
           {row.video && (
             <span className="rounded-full border border-[color:var(--av-lux)]/40 px-2.5 py-1 font-sans text-[10px] uppercase tracking-[0.14em] text-lux">
               reel
@@ -81,11 +87,11 @@ function AmenityCard({ row }: { row: AmenityRow }) {
 
           <div className="grid gap-5 md:grid-cols-2">
             <MediaInput
-              label="Imagen"
+              label="Portada"
               name="image"
               defaultValue={row.image}
               accept="image/webp,image/jpeg,image/png,image/avif"
-              hint="obligatoria"
+              hint="obligatoria · se ve en la tarjeta"
               onFeedback={setFeedback}
             />
             <MediaInput
@@ -97,6 +103,8 @@ function AmenityCard({ row }: { row: AmenityRow }) {
               onFeedback={setFeedback}
             />
           </div>
+
+          <GalleryInput defaultValue={row.gallery} onFeedback={setFeedback} />
 
           {/* Textos por idioma */}
           {(["es", "en", "pt"] as const).map((locale) => (
@@ -154,7 +162,7 @@ function AmenityCard({ row }: { row: AmenityRow }) {
                 defaultChecked={row.featured}
                 className="size-4 accent-[color:var(--av-vivo)]"
               />
-              Destacada (ocupa doble ancho)
+              Destacada
             </label>
 
             <label className="flex items-center gap-2.5 font-sans text-[12px] font-light text-ink-muted">
@@ -206,7 +214,7 @@ export function AmenitiesEditor({ rows }: { rows: AmenityRow[] }) {
     <>
       <PageHeader
         title="Amenities"
-        subtitle="Editá la imagen, el reel, el título y la descripción extendida de cada amenity. Los cambios se publican al guardar."
+        subtitle="Editá la portada, la galería de fotos, el reel, el título y la descripción extendida de cada amenity. Los cambios se publican al guardar."
         actions={
           <AdminButton variant="ghost" onClick={seed} disabled={isPending}>
             <Sprout className="size-3.5" strokeWidth={1.5} aria-hidden="true" />

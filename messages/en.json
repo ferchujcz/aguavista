@@ -104,7 +104,10 @@
     },
     "open": "View details for {name}",
     "close": "Close details",
-    "hint": "Tap to see the details"
+    "hint": "Tap to see the details",
+    "prevPhoto": "Previous photo",
+    "nextPhoto": "Next photo",
+    "goToPhoto": "Go to photo {n}"
   },
   "comingSoon": {
     "badge": "Coming soon",

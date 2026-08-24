@@ -39,9 +39,14 @@ create table if not exists public.amenities (
   id                  text primary key,
   sort_order          int  not null default 0,
   enabled             boolean not null default true,
+  -- Portada: la foto de la tarjeta del riel y la primera del carrusel.
   image               text not null,
+  -- Fotos adicionales de la zona, en orden y SIN repetir la portada.
+  -- El sitio arma el carrusel como [image, ...gallery].
+  gallery             text[] not null default '{}',
   video               text,
-  -- `featured` ocupa dos columnas del grid en vez de una.
+  -- Marca editorial. Ya no cambia la geometria de la tarjeta (el riel usa
+  -- un encuadre unico para todas), pero se conserva para ordenar.
   featured            boolean not null default false,
 
   title_es            text,
@@ -58,6 +63,13 @@ create table if not exists public.amenities (
 
   updated_at          timestamptz not null default now()
 );
+
+-- Migracion para bases que ya corrieron una version anterior de este
+-- archivo: `create table if not exists` no agrega columnas a una tabla que
+-- ya existe, asi que la columna nueva se suma aparte. Es idempotente, se
+-- puede volver a correr el schema completo sin romper nada.
+alter table public.amenities
+  add column if not exists gallery text[] not null default '{}';
 
 create index if not exists amenities_order_idx on public.amenities (sort_order);
 
