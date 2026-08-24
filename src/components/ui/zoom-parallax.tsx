@@ -38,7 +38,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
     const scales = [scale4, scale5, scale6, scale5, scale6, scale8, scale9];
 
     return (
-        <section ref={mainContainer} className="relative w-full bg-[#0C0A09]">
+        <section ref={mainContainer} className="relative w-full bg-[color:var(--av-base)]">
             
             {/* ── Fondo Parallax ── */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -47,7 +47,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                     className="absolute -top-[10%] left-0 w-full h-[120%]"
                 >
                     <Image src="/playa.webp" alt="Fondo textura" fill className="object-cover opacity-15" sizes="100vw" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#0C0A09] via-transparent to-[#0C0A09]" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--av-base)] via-transparent to-[color:var(--av-base)]" />
                 </motion.div>
             </div>
 
@@ -58,7 +58,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                     whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                     transition={{ duration: 1, ease: "easeOut" }}
                     viewport={{ once: true }}
-                    className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs font-light tracking-[0.3em] text-[#C9A962] uppercase mb-8"
+                    className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs font-light tracking-[0.3em] text-[color:var(--av-lux)] uppercase mb-8"
                 >
                     Un refugio sin precedentes
                 </motion.span>
@@ -67,9 +67,9 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                     whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)', scale: 1 }}
                     transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
                     viewport={{ once: true }}
-                    className="font-[family-name:var(--font-cormorant)] text-4xl md:text-6xl lg:text-7xl text-[#FAFAF9] font-light max-w-5xl leading-tight"
+                    className="font-[family-name:var(--font-cormorant)] text-4xl md:text-6xl lg:text-7xl text-[color:var(--av-text)] font-light max-w-5xl leading-tight"
                 >
-                    Cada instalación fue diseñada para que tu experiencia de vida sea <span className="italic text-[#A8A29E]">única.</span>
+                    Cada instalación fue diseñada para que tu experiencia de vida sea <span className="italic text-[color:var(--av-text-muted)]">única.</span>
                 </motion.h2>
             </div>
 
@@ -78,17 +78,17 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                 <div className="sticky top-0 h-screen overflow-hidden">
         
                     {/* ── TEXTO CENTRAL FIJO (Sin animaciones raras, adaptado a celular) ── */}
-                    {/* Al estar primero en el código, queda naturalmente "detrás" de las fotos, evitando que las pise */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none z-0">
-                        <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-base tracking-[0.4em] text-[#C9A962] uppercase mb-2 drop-shadow-md">
-                            Descubrir
-                        </span>
-                        {/* Reduje a text-2xl/3xl en móvil para que entre perfecto en el hueco del medio */}
-                        <h3 className="font-[family-name:var(--font-cormorant)] text-2xl sm:text-3xl md:text-5xl lg:text-6xl text-[#FAFAF9] font-light leading-snug drop-shadow-lg">
-                            Conoce nuestras <br/>
-                            <span className="italic text-[#A8A29E]">instalaciones</span>
-                        </h3>
-                    </div>
+<div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center pointer-events-none z-0">
+    <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs lg:text-sm tracking-[0.3em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-2 drop-shadow-md">
+        Hay mucho más por descubrir
+    </span>
+    
+    {/* Tamaños ajustados para que la frase larga entre perfecta en móvil */}
+    <h3 className="font-[family-name:var(--font-cormorant)] text-xl sm:text-2xl md:text-4xl lg:text-5xl text-[color:var(--av-text)] font-light leading-snug drop-shadow-lg max-w-3xl mt-1">
+        Explorá cada espacio y empezá a <br className="hidden sm:block" />
+        imaginar tu vida en <span className="italic text-[color:var(--av-text-muted)]">AguaVista</span>
+    </h3>
+</div>
 
                     {/* ── MAPEO DE IMÁGENES (POSICIONES ORIGINALES INTACTAS) ── */}
                     {images.map(({ src, alt, isText }, index) => {

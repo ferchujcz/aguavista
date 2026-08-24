@@ -78,7 +78,8 @@ export default function InkReveal({
       const wob = 0.78 + wobble[0] * Math.sin(a * 3 + seed) + wobble[1] * Math.sin(a * 5 + seed * 2.1) + wobble[2] * Math.sin(a * 7 + seed * 0.7);
       const px = x + Math.cos(a) * r * wob;
       const py = y + Math.sin(a) * r * wob;
-      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
     }
     ctx.closePath();
     ctx.fill();
@@ -109,7 +110,11 @@ export default function InkReveal({
     lastPosRef.current = { x, y };
   }, [addStamp, stampStep]);
 
-  const loop = useCallback(() => {
+  // Expresion de funcion CON NOMBRE: `step` puede referenciarse a si
+  // misma para encadenar el proximo frame. Antes el callback se llamaba
+  // `loop` y se usaba dentro de su propia definicion, lo que lo leia
+  // antes de estar declarado.
+  const loop = useCallback(function step() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -136,7 +141,7 @@ export default function InkReveal({
     }
 
     if (stamps.length) {
-      requestAnimationFrame(loop);
+      requestAnimationFrame(step);
     } else {
       runningRef.current = false;
     }

@@ -1,0 +1,148 @@
+import dynamic from "next/dynamic";
+import { setRequestLocale, getTranslations } from "next-intl/server";
+import { routing, type Locale } from "@/i18n/routing";
+import { siteConfig } from "@/config/site";
+
+import { Hero } from "@/components/sections/Hero";
+import { Amenities } from "@/components/sections/Amenities";
+import { Lotes } from "@/components/sections/Lotes";
+import { Testimonials } from "@/components/sections/Testimonials";
+import { Contact } from "@/components/sections/Contact";
+import { Faq } from "@/components/sections/Faq";
+import { ZoomParallax } from "@/components/ui/zoom-parallax";
+import VerticalReels from "@/components/lifestyle/VerticalReels";
+import { ComingSoon } from "@/components/sections/ComingSoon";
+import { MapSkeleton } from "@/components/ui/Skeleton";
+import { SHOW_SALES_SECTION, TESTIMONIALS_PUBLISHED } from "@/config/features";
+
+/**
+ * El masterplan arrastra el SDK de Supabase y un canvas pesado. Cargarlo
+ * bajo demanda lo saca del bundle inicial: no se descarga hasta que el
+ * visitante llega a esa altura de la página.
+ *
+ * Hoy está detrás de SHOW_SALES_SECTION (apagado): con el flag en false
+ * este import ni siquiera se evalúa y el chunk no se genera.
+ */
+const InteractiveMap = dynamic(() => import("@/components/masterplan/InteractiveMap"), {
+  loading: () => (
+    <div className="mx-auto max-w-[1400px] px-5 py-24 md:px-10">
+      <MapSkeleton />
+    </div>
+  ),
+});
+
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
+interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale as Locale);
+
+  const t = await getTranslations({ locale, namespace: "faq" });
+  const tm = await getTranslations({ locale, namespace: "metadata" });
+  const faqItems = t.raw("items") as FaqItem[];
+
+  /* Datos estructurados. El bloque FAQPage habilita el acordeón
+     desplegable en los resultados de Google; RealEstateAgent + geo
+     alimentan la ficha del negocio local. */
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "RealEstateAgent",
+        "@id": `${siteConfig.url}/#organization`,
+        name: siteConfig.name,
+        legalName: siteConfig.legalName,
+        description: tm("description"),
+        url: siteConfig.url,
+        image: `${siteConfig.url}${siteConfig.ogImage}`,
+        telephone: siteConfig.contact.phoneRaw,
+        email: siteConfig.contact.email,
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: siteConfig.contact.address,
+          addressCountry: "PY",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: siteConfig.geo.lat,
+          longitude: siteConfig.geo.lng,
+        },
+        sameAs: siteConfig.social.map((s) => s.href),
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteConfig.url}/#website`,
+        url: `${siteConfig.url}/${locale}`,
+        name: siteConfig.name,
+        inLanguage: locale,
+        publisher: { "@id": `${siteConfig.url}/#organization` },
+      },
+      {
+        "@type": "FAQPage",
+        mainEntity: faqItems.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        // JSON.stringify de un objeto construido en el servidor: no hay
+        // entrada de usuario en juego, así que no hay riesgo de inyección.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      <Hero />
+
+      <ZoomParallax
+        images={[
+          { src: "/aero1.webp", isText: true },
+          { src: "/foto-2.webp", alt: "Residencias frente al río en AguaVista" },
+          { src: "/foto-3.webp", alt: "Cancha de golf de AguaVista al atardecer" },
+          { src: "/foto-4.webp", alt: "Marina privada de AguaVista sobre el Paraná" },
+          { src: "/foto-5.webp", alt: "Jardín japonés del condominio AguaVista" },
+          { src: "/foto-6.webp", alt: "Calles internas arboladas de AguaVista" },
+          { src: "/foto-7.webp", alt: "Playa privada de AguaVista sobre el Río Paraná" },
+        ]}
+      />
+
+      <Amenities />
+      <VerticalReels />
+      <Lotes />
+
+      {/* Masterplan interactivo: apagado hasta integrar la navegación
+          360. El código sigue vivo y tipado detrás del flag; para volver
+          a prenderlo alcanza con SHOW_SALES_SECTION = true. */}
+      {SHOW_SALES_SECTION ? (
+        <section id="masterplan" aria-label="Masterplan">
+          <InteractiveMap />
+        </section>
+      ) : (
+        <ComingSoon />
+      )}
+
+      {/* Testimonios: ocultos mientras src/data/testimonials.ts tenga
+          contenido de relleno. Ver TESTIMONIALS_PUBLISHED. */}
+      {TESTIMONIALS_PUBLISHED && <Testimonials />}
+
+      <Contact />
+      <Faq />
+    </>
+  );
+}

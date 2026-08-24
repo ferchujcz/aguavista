@@ -1,6 +1,9 @@
 'use client';
 
+import Image from 'next/image';
+
 import InkReveal from '@/components/ui/ink-reveal';
+import { LoopVideo } from '@/components/ui/LoopVideo';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 
@@ -71,12 +74,14 @@ export default function VerticalReels() {
        * SIN sticky ni h-screen
        */}
       <div className="absolute inset-0 h-full w-full z-0 pointer-events-none">
-        <img
-          src="/foto-9.jpg"
-          alt="Fondo Amenidades"
-          decoding="async"
+        <Image
+          src="/foto-9.webp"
+          alt="Vista del paisaje de AguaVista al atardecer"
+          fill
           loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-40"
+          sizes="100vw"
+          quality={55}
+          className="object-cover object-center opacity-40"
         />
         <InkReveal
           maskColor={[12, 12, 12]}
@@ -127,7 +132,7 @@ export default function VerticalReels() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
-              className="text-[#cda434] uppercase tracking-[0.2em] text-sm mb-4 font-semibold drop-shadow-md"
+              className="text-[var(--av-lux)] uppercase tracking-[0.2em] text-sm mb-4 font-semibold drop-shadow-md"
             >
               Lifestyle Exclusivo
             </motion.h2>
@@ -139,7 +144,7 @@ export default function VerticalReels() {
               transition={{ delay: 0.1 }}
               className="text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
             >
-              ¿Te gustaría vivir en el paraíso?
+              ¿Te imaginas viviendo acá?
             </motion.h3>
 
             <motion.p
@@ -149,7 +154,7 @@ export default function VerticalReels() {
               transition={{ delay: 0.2 }}
               className="text-white/60 mt-6 text-base lg:text-lg max-w-md font-light leading-relaxed"
             >
-              Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
+              Descubrí cada detalle y sentí la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
             </motion.p>
           </motion.div>
 
@@ -159,7 +164,7 @@ export default function VerticalReels() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: '-50px' }}
-              className="text-[#cda434] uppercase tracking-[0.2em] text-xs mb-3 font-semibold drop-shadow-md"
+              className="text-[var(--av-lux)] uppercase tracking-[0.2em] text-xs mb-3 font-semibold drop-shadow-md"
             >
               Lifestyle Exclusivo
             </motion.h2>
@@ -181,7 +186,7 @@ export default function VerticalReels() {
               transition={{ delay: 0.2 }}
               className="text-white/60 mt-4 text-sm max-w-md font-light leading-relaxed"
             >
-              Descubre cada detalle y siente la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
+              No se trata solo de todo lo que AguaVista tiene, sino de todo lo que te permite vivi
             </motion.p>
           </div>
         </div>
@@ -205,7 +210,13 @@ export default function VerticalReels() {
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                   className="relative w-full aspect-[9/16] rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.9)] border border-white/5"
                 >
-                  <video src={src} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                  {/* Solo reproduce mientras la columna esta en pantalla:
+                      cuatro reels decodificando a la vez se comen los 60fps. */}
+                  <LoopVideo
+                    src={src}
+                    poster={src.replace('.mp4', '-poster.webp')}
+                    className="absolute inset-0 w-full h-full"
+                  />
                 </motion.div>
               ))}
             </div>
@@ -220,7 +231,13 @@ export default function VerticalReels() {
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                   className="relative w-full aspect-[9/16] rounded-xl overflow-hidden shadow-[0_20px_40px_rgba(0,0,0,0.9)] border border-white/5"
                 >
-                  <video src={src} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                  {/* Solo reproduce mientras la columna esta en pantalla:
+                      cuatro reels decodificando a la vez se comen los 60fps. */}
+                  <LoopVideo
+                    src={src}
+                    poster={src.replace('.mp4', '-poster.webp')}
+                    className="absolute inset-0 w-full h-full"
+                  />
                 </motion.div>
               ))}
             </div>
@@ -239,7 +256,13 @@ export default function VerticalReels() {
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                   className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.9)] border border-white/5"
                 >
-                  <video src={src} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                  {/* Solo reproduce mientras la columna esta en pantalla:
+                      cuatro reels decodificando a la vez se comen los 60fps. */}
+                  <LoopVideo
+                    src={src}
+                    poster={src.replace('.mp4', '-poster.webp')}
+                    className="absolute inset-0 w-full h-full"
+                  />
                 </motion.div>
               ))}
             </div>
@@ -255,7 +278,13 @@ export default function VerticalReels() {
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                   className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.9)] border border-white/5"
                 >
-                  <video src={src} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+                  {/* Solo reproduce mientras la columna esta en pantalla:
+                      cuatro reels decodificando a la vez se comen los 60fps. */}
+                  <LoopVideo
+                    src={src}
+                    poster={src.replace('.mp4', '-poster.webp')}
+                    className="absolute inset-0 w-full h-full"
+                  />
                 </motion.div>
               ))}
             </div>
