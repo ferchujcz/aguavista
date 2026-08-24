@@ -5,8 +5,8 @@ import { ArrowDown, ArrowUp, Plus, Trash2, Upload } from "lucide-react";
 import { uploadMedia } from "@/app/actions/admin-cms";
 import { AdminButton } from "./AdminUI";
 import type { Feedback } from "./MediaInput";
+import { optimizeAndCropImage } from "@/lib/image-optimizer";
 
-/** Cada foto lleva una clave estable propia. */
 interface Slot {
   key: string;
   url: string;
@@ -15,22 +15,6 @@ interface Slot {
 let counter = 0;
 const nextKey = () => `g${counter++}`;
 
-/**
- * Editor de la galería de una amenity: una lista ordenada de fotos.
- *
- * Renderiza un `<input name="gallery">` REAL por cada foto, así la server
- * action las lee con `formData.getAll("gallery")` y este componente no
- * necesita saber cómo se persiste — mismo contrato que MediaInput.
- *
- * Por qué claves propias y no el índice del array: si la clave fuera el
- * índice, borrar la foto 2 haría que React reutilizara el input de la 3
- * para la 4, y el texto escrito y el foco saltarían de fila. Con una clave
- * estable cada input sigue a su foto.
- *
- * La portada NO se edita acá: vive en su propio MediaInput porque la
- * columna es `not null` y es lo que garantiza que la tarjeta del riel
- * siempre tenga algo que mostrar.
- */
 export function GalleryInput({
   defaultValue,
   onFeedback,
@@ -59,22 +43,39 @@ export function GalleryInput({
       return next;
     });
 
-  /** Subida múltiple: se agrega una fila por archivo, en orden. */
-  const handleFiles = async (files: File[]) => {
+  /** Subida múltiple con Auto-Recorte y Optimización WebP */
+  const handleFiles = async (rawFiles: File[]) => {
     setUploading(true);
     onFeedback(null);
     const added: string[] = [];
 
-    for (const file of files) {
-      const fd = new FormData();
-      fd.append("file", file);
-      const result = await uploadMedia(fd);
-      if (result.ok && result.url) {
-        added.push(result.url);
-      } else {
-        // Se corta en el primer error pero se conserva lo ya subido: hacer
-        // perder cinco fotos buenas por una sexta que falló sería peor.
-        onFeedback({ ok: false, message: `${file.name}: ${result.message}` });
+    for (const rawFile of rawFiles) {
+      try {
+        let fileToUpload = rawFile;
+        
+        // Magia: Si es imagen, la forzamos a proporción 4:5 (vertical) y max 1200px
+        if (rawFile.type.startsWith('image/')) {
+          fileToUpload = await optimizeAndCropImage(rawFile, {
+            aspectRatio: 4 / 5, 
+            maxWidth: 1200,     
+            quality: 0.8
+          });
+        }
+
+        const fd = new FormData();
+        fd.append("file", fileToUpload);
+        
+        // Pasa por el backend que ya acepta WebP sin problemas
+        const result = await uploadMedia(fd);
+        
+        if (result.ok && result.url) {
+          added.push(result.url);
+        } else {
+          onFeedback({ ok: false, message: `${rawFile.name}: ${result.message}` });
+          break;
+        }
+      } catch (error) {
+        onFeedback({ ok: false, message: `Error al procesar y optimizar la foto ${rawFile.name}` });
         break;
       }
     }
@@ -83,9 +84,7 @@ export function GalleryInput({
       setSlots((prev) => [...prev, ...added.map((url) => ({ key: nextKey(), url }))]);
       onFeedback({
         ok: true,
-        message: `${added.length} foto${added.length > 1 ? "s" : ""} subida${
-          added.length > 1 ? "s" : ""
-        }. Acordate de guardar.`,
+        message: `${added.length} foto${added.length > 1 ? "s" : ""} optimizada${added.length > 1 ? "s" : ""} y subida${added.length > 1 ? "s" : ""}. Acordate de guardar.`,
       });
     }
     setUploading(false);
@@ -96,7 +95,7 @@ export function GalleryInput({
       <span className="font-sans text-[10px] font-medium uppercase tracking-[0.16em] text-ink-muted">
         Galería
         <span className="ml-2 normal-case tracking-normal opacity-70">
-          fotos extra del detalle · la portada va primero sola
+          fotos extra del detalle · se recortarán automáticamente a vertical (4:5)
         </span>
       </span>
 
@@ -113,9 +112,6 @@ export function GalleryInput({
                 {i + 2}
               </span>
 
-              {/* eslint-disable-next-line @next/next/no-img-element -- la URL
-                  puede ser de cualquier host; acá no vale la pena pasar por
-                  el optimizador. */}
               <img
                 src={slot.url}
                 alt=""
@@ -133,18 +129,10 @@ export function GalleryInput({
               />
 
               <div className="flex shrink-0 items-center gap-1">
-                <IconBtn
-                  label={`Subir la foto ${i + 2}`}
-                  disabled={i === 0}
-                  onClick={() => move(i, -1)}
-                >
+                <IconBtn label={`Subir la foto ${i + 2}`} disabled={i === 0} onClick={() => move(i, -1)}>
                   <ArrowUp className="size-3.5" strokeWidth={1.6} aria-hidden="true" />
                 </IconBtn>
-                <IconBtn
-                  label={`Bajar la foto ${i + 2}`}
-                  disabled={i === slots.length - 1}
-                  onClick={() => move(i, 1)}
-                >
+                <IconBtn label={`Bajar la foto ${i + 2}`} disabled={i === slots.length - 1} onClick={() => move(i, 1)}>
                   <ArrowDown className="size-3.5" strokeWidth={1.6} aria-hidden="true" />
                 </IconBtn>
                 <IconBtn label={`Quitar la foto ${i + 2}`} onClick={() => remove(slot.key)} danger>
@@ -157,11 +145,7 @@ export function GalleryInput({
       )}
 
       <div className="mt-1 flex flex-wrap gap-2">
-        <AdminButton
-          type="button"
-          variant="ghost"
-          onClick={() => setSlots((p) => [...p, { key: nextKey(), url: "" }])}
-        >
+        <AdminButton type="button" variant="ghost" onClick={() => setSlots((p) => [...p, { key: nextKey(), url: "" }])}>
           <Plus className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
           Agregar por URL
         </AdminButton>
@@ -175,38 +159,20 @@ export function GalleryInput({
           onChange={(e) => {
             const files = Array.from(e.target.files ?? []);
             if (files.length) void handleFiles(files);
-            // Se limpia para poder volver a elegir los mismos archivos.
             e.target.value = "";
           }}
         />
 
-        <AdminButton
-          type="button"
-          variant="ghost"
-          disabled={uploading}
-          onClick={() => fileRef.current?.click()}
-        >
+        <AdminButton type="button" variant="ghost" disabled={uploading} onClick={() => fileRef.current?.click()}>
           <Upload className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
-          {uploading ? "Subiendo…" : "Subir fotos"}
+          {uploading ? "Procesando y Subiendo…" : "Subir fotos"}
         </AdminButton>
       </div>
     </div>
   );
 }
 
-function IconBtn({
-  children,
-  label,
-  onClick,
-  disabled,
-  danger,
-}: {
-  children: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-  danger?: boolean;
-}) {
+function IconBtn({ children, label, onClick, disabled, danger }: { children: React.ReactNode; label: string; onClick: () => void; disabled?: boolean; danger?: boolean; }) {
   return (
     <button
       type="button"
@@ -218,9 +184,7 @@ function IconBtn({
         "grid size-8 place-items-center rounded-lg border border-[color:var(--av-border)]",
         "text-ink-muted transition-colors duration-200",
         "disabled:pointer-events-none disabled:opacity-35",
-        danger
-          ? "hover:border-[#E2725B] hover:text-[#E2725B]"
-          : "hover:border-[color:var(--av-vivo)] hover:text-vivo",
+        danger ? "hover:border-[#E2725B] hover:text-[#E2725B]" : "hover:border-[color:var(--av-vivo)] hover:text-vivo",
       ].join(" ")}
     >
       {children}

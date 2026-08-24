@@ -4,23 +4,10 @@ import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { uploadMedia } from "@/app/actions/admin-cms";
 import { AdminButton } from "./AdminUI";
+import { optimizeAndCropImage } from "@/lib/image-optimizer";
 
-/** Resultado de una acción del panel, para mostrarlo al lado del botón. */
 export type Feedback = { ok: boolean; message: string } | null;
 
-/**
- * Campo de medio: acepta una ruta escrita a mano o un archivo subido.
- *
- * Vive en su propio módulo porque lo usan tanto el editor de amenities
- * (donde la URL se persiste al guardar la ficha completa) como el
- * gestor de medios (donde se guarda de inmediato). Renderiza un input
- * de texto REAL con `name`, así el contenedor puede leerlo por FormData
- * sin que este componente tenga que saber cómo se persiste.
- *
- * La subida y el guardado están separados a propósito: subir un archivo
- * de 20 MB y descubrir después que era el campo equivocado obliga a
- * poder revisar la URL antes de aplicarla.
- */
 export function MediaInput({
   label,
   name,
@@ -36,7 +23,6 @@ export function MediaInput({
   accept: string;
   hint?: string;
   onFeedback: (f: Feedback) => void;
-  /** Espejo del valor, para que el padre pueda previsualizarlo. */
   onChange?: (value: string) => void;
 }) {
   const [value, setValue] = useState(defaultValue ?? "");
@@ -48,21 +34,33 @@ export function MediaInput({
     onChange?.(next);
   };
 
-  const handleFile = async (file: File) => {
+  const handleFile = async (rawFile: File) => {
     setUploading(true);
     onFeedback(null);
-    const fd = new FormData();
-    fd.append("file", file);
-    const result = await uploadMedia(fd);
-    setUploading(false);
+    
+    try {
+      // Magia: Si es imagen, la procesamos antes de subirla
+      let fileToUpload = rawFile;
+      if (rawFile.type.startsWith('image/')) {
+        // Configuramos: Max 1920px de ancho y calidad WebP 80%
+        fileToUpload = await optimizeAndCropImage(rawFile, { maxWidth: 1920, quality: 0.8 });
+      }
 
-    if (result.ok && result.url) {
-      // La URL devuelta se escribe en el input de texto: recién se
-      // persiste cuando el usuario guarda.
-      update(result.url);
-      onFeedback({ ok: true, message: `${result.message} Acordate de guardar.` });
-    } else {
-      onFeedback({ ok: false, message: result.message });
+      const fd = new FormData();
+      fd.append("file", fileToUpload);
+      
+      const result = await uploadMedia(fd);
+      
+      if (result.ok && result.url) {
+        update(result.url);
+        onFeedback({ ok: true, message: `Archivo procesado y subido. Acordate de guardar.` });
+      } else {
+        onFeedback({ ok: false, message: result.message });
+      }
+    } catch (error) {
+      onFeedback({ ok: false, message: "Error al procesar la imagen." });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -80,7 +78,7 @@ export function MediaInput({
           value={value}
           onChange={(e) => update(e.target.value)}
           placeholder="/foto.webp o https://…"
-          className="min-w-0 flex-1 rounded-xl border border-[color:var(--av-border)] bg-[color:var(--av-base)] px-3.5 py-2.5 font-sans text-[13px] font-light text-ink outline-none transition-colors duration-200 focus:border-[color:var(--av-vivo)] placeholder:text-ink-faint"
+          className="min-w-0 flex-1 rounded-xl border border-[color:var(--av-border)] bg-[color:var(--av-base)] px-3.5 py-2.5 font-sans text-[13px] font-light text-ink outline-none focus:border-[color:var(--av-vivo)] placeholder:text-ink-faint"
         />
 
         <input
@@ -91,7 +89,6 @@ export function MediaInput({
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) void handleFile(file);
-            // Se limpia para poder volver a elegir el mismo archivo.
             e.target.value = "";
           }}
         />
@@ -104,7 +101,7 @@ export function MediaInput({
           className="shrink-0"
         >
           <Upload className="size-3.5" strokeWidth={1.5} aria-hidden="true" />
-          {uploading ? "Subiendo…" : "Subir"}
+          {uploading ? "Procesando…" : "Subir Automático"}
         </AdminButton>
       </div>
     </div>

@@ -4,35 +4,9 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { LoopVideo } from "@/components/ui/LoopVideo";
 import { SplitText } from "@/components/motion/SplitText";
 import { EASE_LUX } from "@/components/motion/Reveal";
 
-/**
- * Hero con video de fondo y parallax.
- *
- * Estrategia de carga (esto es lo que decide el LCP de toda la página):
- * el poster es un <Image priority> que se descarga como recurso crítico,
- * y el micro-loop de 14s (1,98 MB) lo pide LoopVideo recién cuando la
- * sección entra en viewport, pausándose sola al salir.
- *
- * Sobre el apilado: el fondo va en `z-0` y el contenido en `z-10`, ambos
- * positivos y dentro del mismo contexto. La versión anterior mandaba el
- * fondo a `-z-10`, lo que lo empujaba detrás del contexto de apilado que
- * crea PageTransition y hacía que el video quedara tapado.
- *
- * `video` y `poster` llegan por props desde el server component de la
- * página, que los resuelve con getSettings(): así se pueden reemplazar
- * desde /admin/media sin tocar código. Los valores por defecto son los
- * archivos de /public, para que el componente siga siendo usable solo.
- *
- * Sobre los FPS al scrollear: el video se promueve a su propia capa de
- * composición (`translateZ(0)` + `will-change: transform`) para que el
- * parallax lo mueva en la GPU y no obligue a repintar. El otro factor —el
- * más caro— era el `backdrop-filter` del navbar pasando por encima del
- * metraje en reproducción; eso se resuelve en Navbar.tsx, que mientras el
- * hero está en pantalla usa un degradado plano en lugar del vidrio.
- */
 export function Hero({
   video = "/banner.mp4",
   poster = "/banner-poster.webp",
@@ -50,11 +24,7 @@ export function Hero({
     offset: ["start start", "end start"],
   });
 
-  // El fondo se mueve menos que el contenido: eso es el parallax.
   const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
-  // El zoom del fondo se quedó en 1.06: cada punto de escala obliga al
-  // compositor a remuestrear la textura del video en cada frame, y a 1.12
-  // eso se notaba en el scroll sin aportar casi nada visualmente.
   const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
   const contentY = useTransform(scrollYProgress, [0, 0.7], ["0%", "-18%"]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
@@ -70,16 +40,11 @@ export function Hero({
       <motion.div
         style={{
           ...(reduceMotion ? {} : { y: bgY, scale: bgScale }),
-          // Capa de composición propia: sin esto el navegador rasteriza el
-          // fondo (video incluido) junto al resto de la sección en cada
-          // frame del parallax.
           willChange: "transform",
           backfaceVisibility: "hidden",
         }}
         className="absolute inset-0 z-0"
       >
-        {/* Poster: es el LCP. Se queda debajo del video y sirve de primer
-            frame mientras el loop todavía no arrancó. */}
         <Image
           src={poster}
           alt={t("videoAlt")}
@@ -91,28 +56,26 @@ export function Hero({
           className="object-cover"
         />
 
-        {/* Decorativo: la información visual ya la aporta el poster de
-            arriba, que sí lleva alt. Sin label queda aria-hidden. */}
-        <LoopVideo
-          src={video}
+        {/* ── VIDEO NATIVO OPTIMIZADO PARA RENDIMIENTO EXTREMO ── */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="none"
           poster={poster}
-          className="absolute inset-0 size-full"
-        />
+          className="absolute inset-0 size-full object-cover"
+        >
+          <source src={video} type="video/mp4" />
+        </video>
 
-        {/* Velo de contraste. Deliberadamente liviano: al 55% + gradiente
-            radial + fundido a color base, el video se leía como un bloque
-            de color sólido. Ahora el metraje se ve y el texto igual
-            mantiene contraste AA gracias al degradado de abajo. */}
         <div aria-hidden="true" className="absolute inset-0 bg-[#050D09]/25" />
         <div
           aria-hidden="true"
           className="absolute inset-0"
           style={{
             background:
-              // Viñeta suave para separar el texto del centro…
               "radial-gradient(ellipse 75% 60% at 50% 45%, rgba(5,13,9,.28) 0%, rgba(5,13,9,.05) 55%, transparent 100%)," +
-              // …y fundido al fondo de página solo en el último cuarto,
-              // para que la sección siguiente entre sin costura.
               "linear-gradient(to bottom, rgba(5,13,9,.45) 0%, transparent 22%, transparent 72%, var(--av-base) 100%)",
           }}
         />
