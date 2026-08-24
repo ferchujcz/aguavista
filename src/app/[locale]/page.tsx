@@ -77,14 +77,19 @@ export default async function HomePage({
         email: siteConfig.contact.email,
         address: {
           "@type": "PostalAddress",
-          streetAddress: siteConfig.contact.address,
-          addressCountry: "PY",
+          ...siteConfig.addressParts,
         },
         geo: {
           "@type": "GeoCoordinates",
           latitude: siteConfig.geo.lat,
           longitude: siteConfig.geo.lng,
         },
+        /* El código Plus es la propiedad que Google usa para resolver
+           direcciones sin numeración de calle, que es el caso del predio. */
+        hasMap: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          siteConfig.plusCode
+        )}`,
+        areaServed: { "@type": "Country", name: "Paraguay" },
         sameAs: siteConfig.social.map((s) => s.href),
       },
       {

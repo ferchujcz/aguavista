@@ -3,13 +3,9 @@
  * Todo lo que aparezca en más de un lugar (footer, metadata, JSON-LD,
  * botón de WhatsApp) sale de acá para que no se desincronice.
  *
- * ╔══════════════════════════════════════════════════════════════════╗
- * ║  TODO — LO ÚNICO QUE SIGUE PENDIENTE                             ║
- * ║   [ ] contact.address   dirección postal real del predio         ║
- * ║   [ ] geo               coordenadas reales (Google Maps → clic   ║
- * ║                         derecho sobre la entrada → copiar)       ║
- * ║  Ambas alimentan el JSON-LD de negocio local que lee Google.     ║
- * ╚══════════════════════════════════════════════════════════════════╝
+ * Ya no queda nada pendiente: dirección, coordenadas y código Plus salen
+ * de la ficha de Google Maps del predio y alimentan el JSON-LD de negocio
+ * local (ver el @graph en src/app/[locale]/page.tsx).
  */
 
 export const siteConfig = {
@@ -35,8 +31,27 @@ export const siteConfig = {
     /** Para wa.me/. Solo dígitos, sin + ni espacios. */
     whatsapp: "595982190911",
     email: "comercial@aguavista.com.py",
-    // PENDIENTE — dirección postal real del predio.
-    address: "Ruta PY02 km 32, Paraguarí, Paraguay",
+    /**
+     * Dirección de una línea, tal como la devuelve Google Maps. Es la que
+     * se imprime en el footer, en la sección de contacto y en el pie de
+     * los documentos legales. Para el JSON-LD se usa `addressParts`, que
+     * es la misma dirección desglosada.
+     */
+    address: "6080, San Juan del Paraná 006080, Paraguay",
+  },
+
+  /**
+   * La misma dirección, desglosada en los campos de schema.org/PostalAddress.
+   * Google prefiere las partes separadas antes que una sola cadena: con
+   * `addressLocality` y `addressRegion` explícitos puede ubicar la ficha en
+   * el departamento correcto sin geocodificar el texto.
+   */
+  addressParts: {
+    streetAddress: "6080",
+    addressLocality: "San Juan del Paraná",
+    addressRegion: "Itapúa",
+    postalCode: "006080",
+    addressCountry: "PY",
   },
 
   /* Para quitar una red que no se use, borrá su objeto: los íconos del
@@ -59,9 +74,15 @@ export const siteConfig = {
     },
   ] as const,
 
-  /* PENDIENTE — coordenadas aproximadas. Alimentan el JSON-LD de negocio
-     local, así que conviene que apunten a la entrada real del predio. */
-  geo: { lat: -25.6236, lng: -57.1505 },
+  /** Coordenadas de la entrada del predio (Google Maps). */
+  geo: { lat: -27.295611, lng: -55.989439 },
+
+  /**
+   * Código Plus de Google (Open Location Code). Es la referencia que
+   * funciona donde no hay numeración de calles, que es exactamente el caso
+   * del predio: se pega en el buscador de Maps y cae en la entrada.
+   */
+  plusCode: "P236+J6 San Juan del Paraná, Paraguay",
 } as const;
 
 export type SiteConfig = typeof siteConfig;

@@ -136,6 +136,12 @@ export function LoopVideo({
         onLoadedData={handleLoaded}
         aria-label={label}
         aria-hidden={label ? undefined : true}
+        // translateZ(0) empuja el <video> a su propia capa de composición.
+        // Importa cuando algo lo mueve por scroll (el parallax del hero):
+        // sin capa propia, cada frame del video invalida el pintado del
+        // contenedor entero. backface-visibility corta un repintado extra
+        // que hacen WebKit y Gecko sobre capas transformadas.
+        style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
         className={cn("size-full object-cover", videoClassName)}
       >
         {mounted && <source src={src} type="video/mp4" />}

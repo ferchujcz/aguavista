@@ -21,6 +21,17 @@ export function Navbar() {
   const { scrollY } = useScroll();
 
   const [solid, setSolid] = useState(false);
+  /**
+   * ¿El navbar sigue por encima del hero?
+   *
+   * Mientras lo esté, el fondo que tiene detrás es el video en
+   * reproducción, y aplicarle `backdrop-filter: blur(16px)` obliga al
+   * compositor a desenfocar metraje que cambia 25 veces por segundo — la
+   * causa real de las caídas de FPS al scrollear. En esa franja se usa un
+   * degradado plano (`.av-scrim-top`), que separa igual de bien y no
+   * cuesta nada. Pasado el hero vuelve el vidrio esmerilado.
+   */
+  const [overHero, setOverHero] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [active, setActive] = useState<string>("inicio");
@@ -28,6 +39,9 @@ export function Navbar() {
   useMotionValueEvent(scrollY, "change", (latest) => {
     const prev = scrollY.getPrevious() ?? 0;
     setSolid(latest > SOLID_AT);
+    // El hero mide 100svh; se descuenta la altura del propio navbar para
+    // cambiar recién cuando dejó de tener video detrás.
+    setOverHero(latest < window.innerHeight - 88);
     // Se esconde bajando y reaparece subiendo: deja respirar al contenido
     // sin obligar a volver al tope para navegar. El umbral de 240px evita
     // que parpadee con el rebote del scroll suave de Lenis.
@@ -66,7 +80,9 @@ export function Navbar() {
         className={cn(
           "fixed inset-x-0 top-0 z-[100] transition-[background,border-color,backdrop-filter] duration-500",
           solid
-            ? "av-glass border-b shadow-av-md"
+            ? overHero
+              ? "av-scrim-top border-b border-transparent"
+              : "av-glass border-b shadow-av-md"
             : "border-b border-transparent bg-transparent"
         )}
       >

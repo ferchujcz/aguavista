@@ -4,7 +4,6 @@ import { useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/Button";
 import { LoopVideo } from "@/components/ui/LoopVideo";
 import { SplitText } from "@/components/motion/SplitText";
 import { EASE_LUX } from "@/components/motion/Reveal";
@@ -26,6 +25,13 @@ import { EASE_LUX } from "@/components/motion/Reveal";
  * página, que los resuelve con getSettings(): así se pueden reemplazar
  * desde /admin/media sin tocar código. Los valores por defecto son los
  * archivos de /public, para que el componente siga siendo usable solo.
+ *
+ * Sobre los FPS al scrollear: el video se promueve a su propia capa de
+ * composición (`translateZ(0)` + `will-change: transform`) para que el
+ * parallax lo mueva en la GPU y no obligue a repintar. El otro factor —el
+ * más caro— era el `backdrop-filter` del navbar pasando por encima del
+ * metraje en reproducción; eso se resuelve en Navbar.tsx, que mientras el
+ * hero está en pantalla usa un degradado plano en lugar del vidrio.
  */
 export function Hero({
   video = "/banner.mp4",
@@ -45,8 +51,11 @@ export function Hero({
   });
 
   // El fondo se mueve menos que el contenido: eso es el parallax.
-  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.12]);
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "18%"]);
+  // El zoom del fondo se quedó en 1.06: cada punto de escala obliga al
+  // compositor a remuestrear la textura del video en cada frame, y a 1.12
+  // eso se notaba en el scroll sin aportar casi nada visualmente.
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
   const contentY = useTransform(scrollYProgress, [0, 0.7], ["0%", "-18%"]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
 
@@ -59,7 +68,14 @@ export function Hero({
     >
       {/* ── Fondo ── */}
       <motion.div
-        style={reduceMotion ? undefined : { y: bgY, scale: bgScale }}
+        style={{
+          ...(reduceMotion ? {} : { y: bgY, scale: bgScale }),
+          // Capa de composición propia: sin esto el navegador rasteriza el
+          // fondo (video incluido) junto al resto de la sección en cada
+          // frame del parallax.
+          willChange: "transform",
+          backfaceVisibility: "hidden",
+        }}
         className="absolute inset-0 z-0"
       >
         {/* Poster: es el LCP. Se queda debajo del video y sirve de primer
@@ -134,20 +150,6 @@ export function Hero({
         >
           {t("subtitle")}
         </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 1.15, ease: EASE_LUX }}
-          className="mt-10 flex flex-col items-center gap-3 sm:flex-row"
-        >
-          <Button href="#lotes" variant="primary" size="lg">
-            {t("ctaPrimary")}
-          </Button>
-          <Button href="#amenities" variant="secondary" size="lg">
-            {t("ctaSecondary")}
-          </Button>
-        </motion.div>
       </motion.div>
 
       {/* ── Indicador de scroll ── */}

@@ -38,6 +38,13 @@
   --av-glow-cool: rgba(47, 168, 156, 0.06);
 
   /* Vidrio / blur */
+  /* Velo del navbar mientras sobrevuela el hero. Son rgba literales y
+     no color-mix() a proposito: color-mix obliga a lightningcss a
+     emitir un fallback @supports con el color OPACO, y un fallback
+     opaco justo aca taparia la franja superior del video. */
+  --av-scrim-strong: rgba(10, 26, 20, 0.88);
+  --av-scrim-soft:   rgba(10, 26, 20, 0.50);
+
   --av-glass:     rgba(16, 37, 29, 0.72);
   --av-glass-brd: rgba(163, 212, 91, 0.14);
 
@@ -76,6 +83,13 @@
   --av-glow-lux:  rgba(156, 123, 51, 0.05);
   --av-glow-cool: rgba(47, 168, 156, 0.04);
 
+  /* Velo del navbar mientras sobrevuela el hero. Son rgba literales y
+     no color-mix() a proposito: color-mix obliga a lightningcss a
+     emitir un fallback @supports con el color OPACO, y un fallback
+     opaco justo aca taparia la franja superior del video. */
+  --av-scrim-strong: rgba(247, 244, 236, 0.90);
+  --av-scrim-soft:   rgba(247, 244, 236, 0.52);
+
   --av-glass:     rgba(255, 255, 255, 0.78);
   --av-glass-brd: rgba(10, 26, 20, 0.08);
 
@@ -109,6 +123,8 @@
     --av-glow-vivo: rgba(79, 127, 22, 0.06);
     --av-glow-lux: rgba(156, 123, 51, 0.05);
     --av-glow-cool: rgba(47, 168, 156, 0.04);
+    --av-scrim-strong: rgba(247, 244, 236, 0.90);
+    --av-scrim-soft: rgba(247, 244, 236, 0.52);
     --av-glass: rgba(255, 255, 255, 0.78);
     --av-glass-brd: rgba(10, 26, 20, 0.08);
     --av-skeleton: #EDE8DC;
@@ -237,6 +253,35 @@ body {
   opacity: 0.035;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Riel horizontal (amenities). Oculta la barra de scroll nativa: la
+   afordancia la dan las flechas y la tarjeta cortada del borde derecho,
+   como en el carrusel de Porsche. `overscroll-behavior-x: contain` evita
+   que al llegar al final el gesto se propague y dispare el "atras" del
+   navegador o el rebote horizontal de la pagina. */
+.av-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+.av-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Alternativa barata al vidrio, para cuando el navbar pasa por encima del
+   video del hero. `backdrop-filter` obliga al compositor a desenfocar su
+   fondo en cada frame, y si ese fondo es metraje en reproduccion el costo
+   se paga 25 veces por segundo: es de donde salian las caidas de FPS al
+   scrollear el hero. Este degradado da la misma separacion visual con
+   cero filtros. */
+.av-scrim-top {
+  background: linear-gradient(
+    to bottom,
+    var(--av-scrim-strong) 0%,
+    var(--av-scrim-soft) 55%,
+    transparent 100%
+  );
 }
 
 /* Vidrio esmerilado para navbar / drawer / cards flotantes. */
