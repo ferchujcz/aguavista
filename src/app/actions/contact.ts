@@ -1,107 +1,46 @@
 "use server";
 
-import { headers } from "next/headers";
-import { createClient } from "@supabase/supabase-js";
-import { contactServerSchema } from "@/lib/contact-schema";
+import { getServiceClient } from "@/lib/supabase-admin";
+import { getLocale } from "next-intl/server";
 
-export type ContactResult =
-  | { ok: true }
-  | { ok: false; reason: "validation" | "rate-limit" | "server" };
-
-/* ── Rate limit en memoria ─────────────────────────────────────────
-   Suficiente para un formulario de contacto en una sola instancia.
-   Si el sitio pasa a correr en varias regiones o en edge, esto hay que
-   moverlo a Upstash/Redis: cada instancia tiene su propio Map. */
-const WINDOW_MS = 10 * 60 * 1000;
-const MAX_PER_WINDOW = 3;
-const hits = new Map<string, number[]>();
-
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
-
-  if (recent.length >= MAX_PER_WINDOW) {
-    hits.set(ip, recent);
-    return true;
-  }
-
-  recent.push(now);
-  hits.set(ip, recent);
-
-  // Poda perezosa para que el Map no crezca sin límite.
-  if (hits.size > 5000) {
-    for (const [key, times] of hits) {
-      if (!times.some((t) => now - t < WINDOW_MS)) hits.delete(key);
-    }
-  }
-  return false;
-}
-
-async function clientIp(): Promise<string> {
-  const h = await headers();
-  return (
-    h.get("x-forwarded-for")?.split(",")[0].trim() ??
-    h.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
-/**
- * Recibe una consulta del formulario de contacto.
- *
- * Server action y no route handler: el payload no queda expuesto como
- * endpoint público y la validación vive junto al schema compartido.
- * Se revalida TODO acá — la validación del cliente es UX, no seguridad.
- */
-export async function submitContact(
-  raw: Record<string, unknown>
-): Promise<ContactResult> {
-  const parsed = contactServerSchema.safeParse(raw);
-  if (!parsed.success) return { ok: false, reason: "validation" };
-
-  const data = parsed.data;
-
-  // Honeypot lleno: se responde ok para no enseñarle al bot qué falló.
-  if (data.company) return { ok: true };
-
-  if (rateLimited(await clientIp())) {
-    return { ok: false, reason: "rate-limit" };
-  }
-
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  // Service role: solo existe en el servidor. Permite escribir en `leads`
-  // con RLS activo sin abrir la tabla a la anon key del navegador.
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) {
-    // Sin backend configurado la consulta no se pierde en silencio.
-    console.error("[contacto] Falta NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY");
-    return { ok: false, reason: "server" };
-  }
-
+export async function submitContact(values: any) {
   try {
-    const supabase = createClient(url, key, { auth: { persistSession: false } });
-    const h = await headers();
+    // 1. Trampa para bots (Honeypot). Si un bot spammer llena este campo invisible, simulamos que se envió bien.
+    if (values.company) {
+      return { ok: true };
+    }
 
+    // 2. Conectamos con Supabase usando la Llave Maestra (Service Role)
+    const supabase = getServiceClient();
+    if (!supabase) {
+      console.error("Supabase no está configurado en el servidor.");
+      return { ok: false, reason: "config-error" };
+    }
+
+    // 3. Capturamos el idioma en el que el cliente estaba navegando
+    const locale = await getLocale();
+
+    // 4. Inyectamos los datos en la tabla 'leads' que creamos hoy
     const { error } = await supabase.from("leads").insert({
-      name: data.name,
-      email: data.email.toLowerCase(),
-      phone: data.phone,
-      interest: data.interest,
-      message: data.message || null,
-      locale: h.get("x-next-intl-locale") ?? null,
-      user_agent: h.get("user-agent")?.slice(0, 300) ?? null,
-      created_at: new Date().toISOString(),
+      name: values.name,
+      email: values.email,
+      phone: values.phone,
+      interest: values.interest,
+      message: values.message || null,
+      locale: locale,
+      status: "nuevo",
     });
 
     if (error) {
-      console.error("[contacto] Error de Supabase:", error.message);
-      return { ok: false, reason: "server" };
+      console.error("Error al guardar el mensaje en Supabase:", error);
+      return { ok: false, reason: "db-error" };
     }
 
+    // 5. ¡Éxito total! El formulario muestra el check verde.
     return { ok: true };
-  } catch (err) {
-    console.error("[contacto] Error inesperado:", err);
-    return { ok: false, reason: "server" };
+    
+  } catch (error) {
+    console.error("Error crítico en submitContact:", error);
+    return { ok: false, reason: "server-error" };
   }
 }
