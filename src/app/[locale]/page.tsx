@@ -33,7 +33,7 @@ const InteractiveMap = dynamic(() => import("@/components/masterplan/Interactive
 });
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return routing.locales.map((locale: string) => ({ locale }));
 }
 
 interface FaqItem {

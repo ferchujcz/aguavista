@@ -3,21 +3,9 @@ import { canReadAdminData } from "@/lib/admin-auth";
 import { EmptyState, NotConfigured, PageHeader } from "./AdminUI";
 import { LeadsTable, type Lead } from "./LeadsTable";
 
-// Las consultas cambian todo el tiempo: nunca se cachea esta vista.
 export const dynamic = "force-dynamic";
 
-/**
- * Bandeja de consultas del formulario de contacto.
- *
- * Los datos los escribe `src/app/actions/contact.ts` en la tabla
- * `leads` de Supabase, usando el service role: la tabla tiene RLS
- * activo y ninguna política, así que es invisible para la anon key del
- * navegador. Solo se lee desde acá, en el servidor.
- */
 export default async function LeadsPage() {
-  // El guard del layout NO alcanza: los segmentos hermanos renderizan en
-  // paralelo, asi que este cuerpo se ejecuta —y sus consultas viajan en
-  // el payload RSC— aunque el layout muestre el login. Ver canReadAdminData().
   if (!(await canReadAdminData())) return null;
 
   if (!isServiceConfigured()) {

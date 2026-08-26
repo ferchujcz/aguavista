@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -12,25 +13,17 @@ import { MobileDrawer } from "./MobileDrawer";
 import { EASE_LUX } from "@/components/motion/Reveal";
 import { NAV_LINKS } from "@/config/navigation";
 
-/** Scroll a partir del cual el navbar deja de ser transparente. */
 const SOLID_AT = 80;
 
 export function Navbar() {
   const t = useTranslations("nav");
   const tc = useTranslations("common");
   const { scrollY } = useScroll();
+  
+  // 1. Hook para saber en qué URL estamos
+  const pathname = usePathname();
 
   const [solid, setSolid] = useState(false);
-  /**
-   * ¿El navbar sigue por encima del hero?
-   *
-   * Mientras lo esté, el fondo que tiene detrás es el video en
-   * reproducción, y aplicarle `backdrop-filter: blur(16px)` obliga al
-   * compositor a desenfocar metraje que cambia 25 veces por segundo — la
-   * causa real de las caídas de FPS al scrollear. En esa franja se usa un
-   * degradado plano (`.av-scrim-top`), que separa igual de bien y no
-   * cuesta nada. Pasado el hero vuelve el vidrio esmerilado.
-   */
   const [overHero, setOverHero] = useState(true);
   const [hidden, setHidden] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -39,18 +32,10 @@ export function Navbar() {
   useMotionValueEvent(scrollY, "change", (latest) => {
     const prev = scrollY.getPrevious() ?? 0;
     setSolid(latest > SOLID_AT);
-    // El hero mide 100svh; se descuenta la altura del propio navbar para
-    // cambiar recién cuando dejó de tener video detrás.
     setOverHero(latest < window.innerHeight - 88);
-    // Se esconde bajando y reaparece subiendo: deja respirar al contenido
-    // sin obligar a volver al tope para navegar. El umbral de 240px evita
-    // que parpadee con el rebote del scroll suave de Lenis.
     setHidden(latest > prev && latest > 240 && !drawerOpen);
   });
 
-  /* Scroll-spy: marca el link de la sección visible. threshold bajo +
-     rootMargin negativo arriba hacen que la sección "cuente" recién
-     cuando ocupa la franja central del viewport. */
   useEffect(() => {
     const sections = NAV_LINKS.map((l) => document.getElementById(l.href.slice(1))).filter(
       (el): el is HTMLElement => Boolean(el)
@@ -71,6 +56,9 @@ export function Navbar() {
     return () => observer.disconnect();
   }, []);
 
+  // 2. ¡LA MAGIA! Si estamos en cualquier ruta del admin, el Navbar público se destruye.
+  if (pathname?.includes("/admin")) return null;
+
   return (
     <>
       <motion.header
@@ -90,16 +78,7 @@ export function Navbar() {
           aria-label={tc("menu")}
           className="mx-auto flex h-[72px] max-w-[1400px] items-center justify-between gap-6 px-5 md:h-20 md:px-10"
         >
-          {/* ── Marca ──
-              Logo oficial AguaVista + Solari. El PNG es 1210x226 y trae
-              alfa, asi que funciona sobre el video del hero y sobre el
-              vidrio del navbar sin recorte. `priority` porque queda
-              visible desde el primer scroll y sin el se ve entrar tarde. */}
-          <a
-            href="#inicio"
-            className="group flex shrink-0 items-center"
-            aria-label="AguaVista — Inicio"
-          >
+          <a href="#inicio" className="group flex shrink-0 items-center" aria-label="AguaVista — Inicio">
             <Image
               src="/logo-solari.png"
               alt="AguaVista Solari"
@@ -111,7 +90,6 @@ export function Navbar() {
             />
           </a>
 
-          {/* ── Links desktop ── */}
           <ul className="hidden items-center gap-1 lg:flex">
             {NAV_LINKS.map((link) => {
               const isActive = active === link.href.slice(1);
@@ -121,19 +99,15 @@ export function Navbar() {
                     href={link.href}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "group relative block px-4 py-2 font-sans text-[10px] font-medium uppercase tracking-[0.22em]",
-                      "transition-colors duration-300",
+                      "group relative block px-4 py-2 font-sans text-[10px] font-medium uppercase tracking-[0.22em] transition-colors duration-300",
                       isActive ? "text-vivo" : "text-ink-mid hover:text-ink"
                     )}
                   >
                     {t(link.key)}
-                    {/* Subrayado que crece desde el centro en hover y queda
-                        fijo en la sección activa. */}
                     <span
                       aria-hidden="true"
                       className={cn(
-                        "absolute bottom-0.5 left-1/2 h-px w-[calc(100%-2rem)] -translate-x-1/2 bg-[color:var(--av-vivo)]",
-                        "origin-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                        "absolute bottom-0.5 left-1/2 h-px w-[calc(100%-2rem)] -translate-x-1/2 bg-[color:var(--av-vivo)] origin-center transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
                         isActive ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                       )}
                     />
@@ -143,24 +117,16 @@ export function Navbar() {
             })}
           </ul>
 
-          {/* ── Acciones ── */}
           <div className="flex shrink-0 items-center gap-1 md:gap-2">
             <div className="hidden items-center gap-1 sm:flex">
               <ThemeToggle />
               <LanguageSwitcher />
             </div>
 
-            <Button
-              href="#contacto"
-              variant="primary"
-              size="sm"
-              noMagnet
-              className="hidden md:inline-flex"
-            >
+            <Button href="#contacto" variant="primary" size="sm" noMagnet className="hidden md:inline-flex">
               {t("cta")}
             </Button>
 
-            {/* ── Hamburguesa ── */}
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
@@ -170,8 +136,6 @@ export function Navbar() {
               className="group grid size-11 place-items-center rounded-full text-ink transition-colors duration-300 hover:bg-[color:var(--av-elevated)] lg:hidden"
             >
               <span className="flex w-5 flex-col items-end gap-[5px]">
-                {/* La barra del medio es más corta y se estira en hover:
-                    microinteracción barata y muy legible. */}
                 <span className="h-px w-full bg-current transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-3/4" />
                 <span className="h-px w-3/4 bg-current transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-full" />
                 <span className="h-px w-full bg-current transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:w-1/2" />
@@ -180,24 +144,11 @@ export function Navbar() {
           </div>
         </nav>
 
-        {/* Filete luminoso inferior, solo cuando el navbar es sólido. */}
-        <div
-          aria-hidden="true"
-          className={cn(
-            "av-hairline absolute inset-x-0 bottom-0 transition-opacity duration-500",
-            solid ? "opacity-40" : "opacity-0"
-          )}
-        />
+        <div aria-hidden="true" className={cn("av-hairline absolute inset-x-0 bottom-0 transition-opacity duration-500", solid ? "opacity-40" : "opacity-0")} />
       </motion.header>
 
       <AnimatePresence>
-        {drawerOpen && (
-          <MobileDrawer
-            links={NAV_LINKS}
-            active={active}
-            onClose={() => setDrawerOpen(false)}
-          />
-        )}
+        {drawerOpen && <MobileDrawer links={NAV_LINKS} active={active} onClose={() => setDrawerOpen(false)} />}
       </AnimatePresence>
     </>
   );
