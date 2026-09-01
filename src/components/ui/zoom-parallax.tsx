@@ -34,7 +34,6 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
         offset: ['start start', 'end end'],
     });
 
-    // Como ahora arrancan más chicas, el efecto de zoom hacia el final va a ser mucho más notorio.
     const scale4 = useTransform(galleryScroll, [0, 1], [1, 4]);
     const scale5 = useTransform(galleryScroll, [0, 1], [1, 5]);
     const scale6 = useTransform(galleryScroll, [0, 1], [1, 6]);
@@ -45,22 +44,19 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
     /* 
-     * ── POSICIONES MILIMÉTRICAS ──
-     * Achicamos el width (w-) y el height (h-) inicial de todas las fotos.
-     * Las empujamos violentamente hacia los extremos (-top, -left) para crear
-     * un "lienzo vacío" gigante en el centro para el texto.
+     * ── LA MAGIA DEL TEXTO ──
+     * textOpacity: Arranca en 0. Entre el 40% y el 75% del scroll, sube de 0 a 1.
+     * textY: El texto arranca 40px más abajo y flota hacia su lugar mientras aparece.
      */
+    const textOpacity = useTransform(galleryScroll, [0.4, 0.75], [0, 1]);
+    const textY = useTransform(galleryScroll, [0.4, 0.75], [40, 0]);
+
     const getPositionClass = (index: number) => {
         switch (index) {
-            // 1. Golf (Arriba Izquierda) - Empujada bien a la esquina
             case 0: return '[&>div]:!-top-[35vh] [&>div]:!-left-[30vw] [&>div]:!h-[12vh] [&>div]:!w-[25vw] md:[&>div]:!-top-[32vh] md:[&>div]:!-left-[32vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[18vw]'; 
-            // 2. Náutica (Arriba Derecha) - Más apaisada y arrinconada
             case 1: return '[&>div]:!-top-[38vh] [&>div]:!left-[30vw] [&>div]:!h-[10vh] [&>div]:!w-[25vw] md:[&>div]:!-top-[28vh] md:[&>div]:!left-[34vw] md:[&>div]:!h-[14vh] md:[&>div]:!w-[20vw]'; 
-            // 3. Playa (Abajo Izquierda) - Retraída
             case 2: return '[&>div]:!top-[35vh] [&>div]:!-left-[30vw] [&>div]:!h-[12vh] [&>div]:!w-[25vw] md:[&>div]:!top-[34vh] md:[&>div]:!-left-[34vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[22vw]'; 
-            // 4. Spa (Abajo Derecha)
             case 3: return '[&>div]:!top-[38vh] [&>div]:!left-[30vw] [&>div]:!h-[14vh] [&>div]:!w-[25vw] md:[&>div]:!top-[32vh] md:[&>div]:!left-[32vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[16vw]'; 
-            // 5. Eventos (Extremo Centro-Izquierda en PC)
             case 4: return 'hidden md:flex md:[&>div]:!top-[4vh] md:[&>div]:!-left-[46vw] md:[&>div]:!h-[14vh] md:[&>div]:!w-[10vw]'; 
             default: return '';
         }
@@ -107,27 +103,21 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
             <div ref={galleryContainer} className="relative h-[150vh] z-10">
                 <div className="sticky top-0 h-screen overflow-hidden">
 
+                    {/* ── TEXTO CENTRAL QUE APARECE CON EL SCROLL ── */}
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: revealed ? 1 : 0 }}
-                        transition={{ duration: 1.2, delay: 0.1 }}
+                        style={{ opacity: reduceMotion ? 1 : textOpacity, y: reduceMotion ? 0 : textY }}
                         className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-4 text-center md:px-10"
                     >
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_60%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_80%,transparent)_0%,transparent_50%)] opacity-100" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_65%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_80%,transparent)_0%,transparent_50%)] opacity-100" />
                         
                         <div className="relative z-10 flex flex-col items-center justify-center w-full">
-                            <SlideUp
-                                innerClassName="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4 md:mb-6"
-                            >
+                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4 md:mb-6">
                                 Hay mucho más por descubrir
-                            </SlideUp>
+                            </span>
 
-                            <SplitText
-                                as="h3"
-                                text="Explorá cada espacio y empezá a imaginar tu vida en AguaVista"
-                                delay={0.2}
-                                className="w-full max-w-[95%] md:max-w-4xl text-balance font-[family-name:var(--font-cormorant)] text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-[color:var(--av-text)] font-light leading-tight drop-shadow-[0_4px_24px_rgba(10,26,20,0.95)] mx-auto"
-                            />
+                            <h3 className="w-full max-w-[95%] md:max-w-4xl text-balance font-[family-name:var(--font-cormorant)] text-[clamp(1.75rem,7vw,4.5rem)] text-[color:var(--av-text)] font-light leading-[1.1] md:leading-[1.15] drop-shadow-[0_4px_24px_rgba(10,26,20,0.95)] mx-auto">
+                                Explorá cada espacio y empezá<br className="hidden md:block"/> a imaginar tu vida en AguaVista
+                            </h3>
                         </div>
                     </motion.div>
 
