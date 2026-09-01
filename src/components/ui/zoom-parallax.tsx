@@ -34,40 +34,65 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
         offset: ['start start', 'end end'],
     });
 
-    const scale4 = useTransform(galleryScroll, [0, 1], [1, 4]);
-    const scale5 = useTransform(galleryScroll, [0, 1], [1, 5]);
-    const scale6 = useTransform(galleryScroll, [0, 1], [1, 6]);
-    const scale8 = useTransform(galleryScroll, [0, 1], [1, 8]);
-
-    const scales = [scale4, scale5, scale6, scale5, scale8];
-
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
-    const textOpacity = useTransform(galleryScroll, [0.35, 0.6], [0, 1]);
-    const textY = useTransform(galleryScroll, [0.35, 0.6], [30, 0]);
+    /* 
+     * ── ANIMACIONES DE EXPANSIÓN Y ZOOM ──
+     * Scale: Crece parejo para dar la sensación inmersiva.
+     * Spread (X, Y): Empuja las fotos hacia afuera de la pantalla a medida que scrolleás, 
+     * abriendo un hueco limpio y masivo en el centro para que entre el texto.
+     */
+    const globalScale = useTransform(galleryScroll, [0, 0.75], [1, 3.5]);
+    
+    const spreadX_Left = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '-40vw']);
+    const spreadX_Right = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '40vw']);
+    const spreadY_Top = useTransform(galleryScroll, [0.15, 0.65], ['0vh', '-40vh']);
+    const spreadY_Bottom = useTransform(galleryScroll, [0.15, 0.65], ['0vh', '40vh']);
+    const spreadX_FarRight = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '50vw']);
 
     /* 
-     * ── GRILLA MATEMÁTICA PERFECTA (CERO SUPERPOSICIÓN) ──
-     * Calculado para que los bordes de cada imagen mantengan 
-     * una distancia exacta y simétrica de las demás.
+     * ── ANIMACIÓN DEL TEXTO (MÁS DURACIÓN) ──
+     * Aparece recién al 45% del scroll (cuando el hueco ya está abierto)
+     * y se queda en pantalla hasta el final, dándole todo el tiempo de lectura.
      */
-    const getPositionClass = (index: number) => {
+    const textOpacity = useTransform(galleryScroll, [0.45, 0.65], [0, 1]);
+    const textScale = useTransform(galleryScroll, [0.45, 0.65], [0.9, 1]);
+
+    /* 
+     * ── GRILLA DE ENCASTRE PERFECTO ──
+     * Dimensiones calculadas matemáticamente para que haya exactamente
+     * el mismo margen (2vw / 2vh) entre todas las fotos en su estado inicial.
+     */
+    const getInitialClasses = (index: number) => {
         switch (index) {
             // 1. Arriba Izquierda
-            case 0: return '[&>div]:!-top-[20vh] [&>div]:!-left-[18vw] [&>div]:!h-[18vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[18vh] md:[&>div]:!-left-[18vw] md:[&>div]:!h-[26vh] md:[&>div]:!w-[24vw]'; 
-            // 2. Arriba Derecha (alineada a la derecha de la 1)
-            case 1: return '[&>div]:!-top-[24vh] [&>div]:!left-[20vw] [&>div]:!h-[15vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[20vh] md:[&>div]:!left-[8vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[24vw]'; 
-            // 3. Abajo Izquierda (exactamente debajo de la 1)
-            case 2: return '[&>div]:!top-[16vh] [&>div]:!-left-[20vw] [&>div]:!h-[16vh] [&>div]:!w-[38vw] md:[&>div]:!top-[14vh] md:[&>div]:!-left-[16vw] md:[&>div]:!h-[24vh] md:[&>div]:!w-[28vw]'; 
-            // 4. Abajo Derecha (exactamente debajo de la 2)
-            case 3: return '[&>div]:!top-[18vh] [&>div]:!left-[18vw] [&>div]:!h-[18vh] [&>div]:!w-[32vw] md:[&>div]:!top-[12vh] md:[&>div]:!left-[10vw] md:[&>div]:!h-[20vh] md:[&>div]:!w-[20vw]'; 
-            // 5. Centro Extremo Derecho (cierra el bloque a la derecha)
-            case 4: return 'hidden md:flex md:[&>div]:!top-[4vh] md:[&>div]:!left-[32vw] md:[&>div]:!h-[28vh] md:[&>div]:!w-[16vw]'; 
+            case 0: return '[&>div]:!-top-[13vh] [&>div]:!-left-[24vw] [&>div]:!h-[24vh] [&>div]:!w-[46vw] md:[&>div]:!-top-[16vh] md:[&>div]:!-left-[16vw] md:[&>div]:!h-[30vh] md:[&>div]:!w-[30vw]'; 
+            // 2. Arriba Derecha
+            case 1: return '[&>div]:!-top-[13vh] [&>div]:!left-[24vw] [&>div]:!h-[24vh] [&>div]:!w-[46vw] md:[&>div]:!-top-[16vh] md:[&>div]:!left-[16vw] md:[&>div]:!h-[30vh] md:[&>div]:!w-[30vw]'; 
+            // 3. Abajo Izquierda
+            case 2: return '[&>div]:!top-[13vh] [&>div]:!-left-[24vw] [&>div]:!h-[24vh] [&>div]:!w-[46vw] md:[&>div]:!top-[16vh] md:[&>div]:!-left-[16vw] md:[&>div]:!h-[30vh] md:[&>div]:!w-[30vw]'; 
+            // 4. Abajo Derecha
+            case 3: return '[&>div]:!top-[13vh] [&>div]:!left-[24vw] [&>div]:!h-[24vh] [&>div]:!w-[46vw] md:[&>div]:!top-[16vh] md:[&>div]:!left-[16vw] md:[&>div]:!h-[30vh] md:[&>div]:!w-[30vw]'; 
+            // 5. Extremo Derecho (Cierra la grilla en PC)
+            case 4: return 'hidden md:flex md:[&>div]:!top-[0vh] md:[&>div]:!left-[43vw] md:[&>div]:!h-[62vh] md:[&>div]:!w-[20vw]'; 
             default: return '';
         }
     };
 
+    const getTransforms = (index: number) => {
+        if (reduceMotion) return { scale: 1, x: '0vw', y: '0vh' };
+        switch (index) {
+            case 0: return { scale: globalScale, x: spreadX_Left, y: spreadY_Top };
+            case 1: return { scale: globalScale, x: spreadX_Right, y: spreadY_Top };
+            case 2: return { scale: globalScale, x: spreadX_Left, y: spreadY_Bottom };
+            case 3: return { scale: globalScale, x: spreadX_Right, y: spreadY_Bottom };
+            case 4: return { scale: globalScale, x: spreadX_FarRight, y: '0vh' };
+            default: return { scale: 1, x: '0vw', y: '0vh' };
+        }
+    };
+
     return (
+        // Aumenté el alto a 250vh para que tengas muchísimo más tiempo de scroll y lectura
         <section ref={mainContainer} className="relative w-full bg-[color:var(--av-base)]">
 
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -105,17 +130,18 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                 />
             </div>
 
-            <div ref={galleryContainer} className="relative h-[150vh] z-10">
+            <div ref={galleryContainer} className="relative h-[250vh] z-10">
                 <div className="sticky top-0 h-screen overflow-hidden">
 
+                    {/* ── TEXTO CENTRAL QUE APARECE CON EL SCROLL ── */}
                     <motion.div
-                        style={{ opacity: reduceMotion ? 1 : textOpacity, y: reduceMotion ? 0 : textY }}
+                        style={{ opacity: reduceMotion ? 1 : textOpacity, scale: reduceMotion ? 1 : textScale }}
                         className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-4 text-center md:px-10"
                     >
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_60%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_90%,transparent)_0%,transparent_45%)] opacity-100" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_70%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_80%,transparent)_0%,transparent_50%)] opacity-100" />
                         
                         <div className="relative z-10 flex flex-col items-center justify-center w-full">
-                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-3 md:mb-5 drop-shadow-md">
+                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4 md:mb-6">
                                 Hay mucho más por descubrir
                             </span>
 
@@ -125,17 +151,17 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                         </div>
                     </motion.div>
 
+                    {/* ── IMÁGENES ── */}
                     {images.map(({ src, alt }, index) => {
-                        const scale = scales[index % scales.length];
                         return (
                             <motion.div
                                 key={index}
-                                style={{ scale }}
-                                className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${getPositionClass(index)}`}
+                                style={getTransforms(index)}
+                                className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${getInitialClasses(index)}`}
                             >
                                 <div className="relative">
                                     <motion.div
-                                        className="absolute inset-0 overflow-hidden rounded-lg shadow-2xl shadow-black/80"
+                                        className="absolute inset-0 overflow-hidden rounded-xl md:rounded-2xl shadow-2xl shadow-black/80"
                                         initial={reduceMotion ? false : 'hidden'}
                                         animate={revealed || reduceMotion ? 'visible' : 'hidden'}
                                         variants={{
@@ -156,7 +182,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                                             alt={alt || `Parallax image ${index + 1}`}
                                             fill
                                             className="object-cover"
-                                            sizes="(max-width: 768px) 40vw, 25vw"
+                                            sizes="(max-width: 768px) 50vw, 35vw"
                                         />
                                     </motion.div>
                                 </div>
