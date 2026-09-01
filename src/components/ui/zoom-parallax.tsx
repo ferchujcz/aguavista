@@ -43,21 +43,26 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
-    /* 
-     * ── LA MAGIA DEL TEXTO ──
-     * textOpacity: Arranca en 0. Entre el 40% y el 75% del scroll, sube de 0 a 1.
-     * textY: El texto arranca 40px más abajo y flota hacia su lugar mientras aparece.
-     */
     const textOpacity = useTransform(galleryScroll, [0.4, 0.75], [0, 1]);
     const textY = useTransform(galleryScroll, [0.4, 0.75], [40, 0]);
 
+    /* 
+     * ── ENCUADRE CORREGIDO ──
+     * Acercamos todas las fotos al centro (bajamos los valores de vh y vw).
+     * Ahora arman un marco prolijo y proporcionado, sin irse a los bordes.
+     */
     const getPositionClass = (index: number) => {
         switch (index) {
-            case 0: return '[&>div]:!-top-[35vh] [&>div]:!-left-[30vw] [&>div]:!h-[12vh] [&>div]:!w-[25vw] md:[&>div]:!-top-[32vh] md:[&>div]:!-left-[32vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[18vw]'; 
-            case 1: return '[&>div]:!-top-[38vh] [&>div]:!left-[30vw] [&>div]:!h-[10vh] [&>div]:!w-[25vw] md:[&>div]:!-top-[28vh] md:[&>div]:!left-[34vw] md:[&>div]:!h-[14vh] md:[&>div]:!w-[20vw]'; 
-            case 2: return '[&>div]:!top-[35vh] [&>div]:!-left-[30vw] [&>div]:!h-[12vh] [&>div]:!w-[25vw] md:[&>div]:!top-[34vh] md:[&>div]:!-left-[34vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[22vw]'; 
-            case 3: return '[&>div]:!top-[38vh] [&>div]:!left-[30vw] [&>div]:!h-[14vh] [&>div]:!w-[25vw] md:[&>div]:!top-[32vh] md:[&>div]:!left-[32vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[16vw]'; 
-            case 4: return 'hidden md:flex md:[&>div]:!top-[4vh] md:[&>div]:!-left-[46vw] md:[&>div]:!h-[14vh] md:[&>div]:!w-[10vw]'; 
+            // Arriba Izquierda
+            case 0: return '[&>div]:!-top-[28vh] [&>div]:!-left-[25vw] [&>div]:!h-[14vh] [&>div]:!w-[38vw] md:[&>div]:!-top-[22vh] md:[&>div]:!-left-[24vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[20vw]'; 
+            // Arriba Derecha
+            case 1: return '[&>div]:!-top-[32vh] [&>div]:!left-[25vw] [&>div]:!h-[12vh] [&>div]:!w-[38vw] md:[&>div]:!-top-[18vh] md:[&>div]:!left-[24vw] md:[&>div]:!h-[18vh] md:[&>div]:!w-[22vw]'; 
+            // Abajo Izquierda
+            case 2: return '[&>div]:!top-[28vh] [&>div]:!-left-[25vw] [&>div]:!h-[14vh] [&>div]:!w-[38vw] md:[&>div]:!top-[22vh] md:[&>div]:!-left-[25vw] md:[&>div]:!h-[20vh] md:[&>div]:!w-[22vw]'; 
+            // Abajo Derecha
+            case 3: return '[&>div]:!top-[32vh] [&>div]:!left-[25vw] [&>div]:!h-[14vh] [&>div]:!w-[38vw] md:[&>div]:!top-[20vh] md:[&>div]:!left-[22vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[20vw]'; 
+            // Centro Izquierda (Eventos) - Ahora está completamente adentro de la pantalla
+            case 4: return 'hidden md:flex md:[&>div]:!top-[2vh] md:[&>div]:!-left-[38vw] md:[&>div]:!h-[18vh] md:[&>div]:!w-[14vw]'; 
             default: return '';
         }
     };
@@ -103,7 +108,6 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
             <div ref={galleryContainer} className="relative h-[150vh] z-10">
                 <div className="sticky top-0 h-screen overflow-hidden">
 
-                    {/* ── TEXTO CENTRAL QUE APARECE CON EL SCROLL ── */}
                     <motion.div
                         style={{ opacity: reduceMotion ? 1 : textOpacity, y: reduceMotion ? 0 : textY }}
                         className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-4 text-center md:px-10"
