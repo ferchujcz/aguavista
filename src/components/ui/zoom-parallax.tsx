@@ -34,6 +34,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
         offset: ['start start', 'end end'],
     });
 
+    // Como ahora arrancan más chicas, el efecto de zoom hacia el final va a ser mucho más notorio.
     const scale4 = useTransform(galleryScroll, [0, 1], [1, 4]);
     const scale5 = useTransform(galleryScroll, [0, 1], [1, 5]);
     const scale6 = useTransform(galleryScroll, [0, 1], [1, 6]);
@@ -44,19 +45,23 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
     /* 
-     * ── POSICIONES MATEMÁTICAS ESTRICTAS ──
-     * Las fotos fueron empujadas hacia los bordes (25vh/vw) y su tamaño inicial 
-     * fue reducido. Esto crea un hueco central gigante para que el texto respire.
-     * En móvil (versión sin 'md:') se empujan aún más arriba y abajo para liberar 
-     * toda la pantalla vertical.
+     * ── POSICIONES MILIMÉTRICAS ──
+     * Achicamos el width (w-) y el height (h-) inicial de todas las fotos.
+     * Las empujamos violentamente hacia los extremos (-top, -left) para crear
+     * un "lienzo vacío" gigante en el centro para el texto.
      */
     const getPositionClass = (index: number) => {
         switch (index) {
-            case 0: return '[&>div]:!-top-[32vh] [&>div]:!-left-[20vw] [&>div]:!h-[15vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[25vh] md:[&>div]:!-left-[25vw] md:[&>div]:!h-[25vh] md:[&>div]:!w-[20vw]'; 
-            case 1: return '[&>div]:!-top-[35vh] [&>div]:!left-[22vw] [&>div]:!h-[12vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[20vh] md:[&>div]:!left-[25vw] md:[&>div]:!h-[20vh] md:[&>div]:!w-[25vw]'; 
-            case 2: return '[&>div]:!top-[32vh] [&>div]:!-left-[20vw] [&>div]:!h-[12vh] [&>div]:!w-[35vw] md:[&>div]:!top-[25vh] md:[&>div]:!-left-[25vw] md:[&>div]:!h-[20vh] md:[&>div]:!w-[25vw]'; 
-            case 3: return '[&>div]:!top-[35vh] [&>div]:!left-[22vw] [&>div]:!h-[15vh] [&>div]:!w-[35vw] md:[&>div]:!top-[20vh] md:[&>div]:!left-[25vw] md:[&>div]:!h-[25vh] md:[&>div]:!w-[20vw]'; 
-            case 4: return 'hidden md:flex [&>div]:!top-[2vh] [&>div]:!-left-[40vw] [&>div]:!h-[20vh] [&>div]:!w-[15vw]'; 
+            // 1. Golf (Arriba Izquierda) - Empujada bien a la esquina
+            case 0: return '[&>div]:!-top-[35vh] [&>div]:!-left-[30vw] [&>div]:!h-[12vh] [&>div]:!w-[25vw] md:[&>div]:!-top-[32vh] md:[&>div]:!-left-[32vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[18vw]'; 
+            // 2. Náutica (Arriba Derecha) - Más apaisada y arrinconada
+            case 1: return '[&>div]:!-top-[38vh] [&>div]:!left-[30vw] [&>div]:!h-[10vh] [&>div]:!w-[25vw] md:[&>div]:!-top-[28vh] md:[&>div]:!left-[34vw] md:[&>div]:!h-[14vh] md:[&>div]:!w-[20vw]'; 
+            // 3. Playa (Abajo Izquierda) - Retraída
+            case 2: return '[&>div]:!top-[35vh] [&>div]:!-left-[30vw] [&>div]:!h-[12vh] [&>div]:!w-[25vw] md:[&>div]:!top-[34vh] md:[&>div]:!-left-[34vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[22vw]'; 
+            // 4. Spa (Abajo Derecha)
+            case 3: return '[&>div]:!top-[38vh] [&>div]:!left-[30vw] [&>div]:!h-[14vh] [&>div]:!w-[25vw] md:[&>div]:!top-[32vh] md:[&>div]:!left-[32vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[16vw]'; 
+            // 5. Eventos (Extremo Centro-Izquierda en PC)
+            case 4: return 'hidden md:flex md:[&>div]:!top-[4vh] md:[&>div]:!-left-[46vw] md:[&>div]:!h-[14vh] md:[&>div]:!w-[10vw]'; 
             default: return '';
         }
     };
@@ -102,15 +107,13 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
             <div ref={galleryContainer} className="relative h-[150vh] z-10">
                 <div className="sticky top-0 h-screen overflow-hidden">
 
-                    {/* ── TEXTO CENTRAL DE ALTO IMPACTO ── */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: revealed ? 1 : 0 }}
                         transition={{ duration: 1.2, delay: 0.1 }}
                         className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-4 text-center md:px-10"
                     >
-                        {/* Glow circular suave atrás del texto para separarlo del fondo sin ensuciar */}
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_60%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_85%,transparent)_0%,transparent_50%)] opacity-100" />
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_60%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_80%,transparent)_0%,transparent_50%)] opacity-100" />
                         
                         <div className="relative z-10 flex flex-col items-center justify-center w-full">
                             <SlideUp
@@ -128,7 +131,6 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                         </div>
                     </motion.div>
 
-                    {/* ── 5 IMÁGENES EN ÓRBITA ── */}
                     {images.map(({ src, alt }, index) => {
                         const scale = scales[index % scales.length];
                         return (
@@ -139,7 +141,6 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                             >
                                 <div className="relative">
                                     <motion.div
-                                        /* Ajusté el borde a "rounded-lg" para que parezca una foto fina y no un widget */
                                         className="absolute inset-0 overflow-hidden rounded-lg md:rounded-xl shadow-2xl shadow-black/80"
                                         initial={reduceMotion ? false : 'hidden'}
                                         animate={revealed || reduceMotion ? 'visible' : 'hidden'}
