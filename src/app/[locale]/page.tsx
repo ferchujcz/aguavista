@@ -124,19 +124,11 @@ export default async function HomePage({
 
       <ZoomParallax
         images={[
-          // Slot del centro: hace zoom con las demas y a mitad del
-          // recorrido se cruza con el texto "Explora cada espacio...".
-          {
-            src: "/aero1.webp",
-            alt: "Hangar del aeropuerto ejecutivo de AguaVista",
-            isCenter: true,
-          },
-          { src: "/foto-2.webp", alt: "Residencias frente al río en AguaVista" },
-          { src: "/foto-3.webp", alt: "Cancha de golf de AguaVista al atardecer" },
-          { src: "/foto-4.webp", alt: "Marina privada de AguaVista sobre el Paraná" },
-          { src: "/foto-5.webp", alt: "Jardín japonés del condominio AguaVista" },
-          { src: "/foto-6.webp", alt: "Calles internas arboladas de AguaVista" },
-          { src: "/foto-7.webp", alt: "Playa privada de AguaVista sobre el Río Paraná" },
+          { src: "/amenities-hero-golf.webp", alt: "Cancha de Golf en AguaVista" },
+          { src: "/amenities-nautica.webp", alt: "Marina Privada AguaVista" },
+          { src: "/amenities-playa.webp", alt: "Playa Privada sobre el Río Paraná" },
+          { src: "/amenities-spa.webp", alt: "Spa y Relax en AguaVista" },
+          { src: "/amenities-eventos.webp", alt: "Eventos exclusivos" },
         ]}
       />
 
