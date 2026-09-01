@@ -43,26 +43,31 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
-    const textOpacity = useTransform(galleryScroll, [0.4, 0.75], [0, 1]);
-    const textY = useTransform(galleryScroll, [0.4, 0.75], [40, 0]);
+    /* 
+     * ── LA MAGIA DEL TEXTO ──
+     * Sube del 0 al 1 de opacidad entre el 35% y el 60% del scroll. 
+     * Aparece exactamente cuando las fotos ya liberaron el centro.
+     */
+    const textOpacity = useTransform(galleryScroll, [0.35, 0.6], [0, 1]);
+    const textY = useTransform(galleryScroll, [0.35, 0.6], [30, 0]);
 
     /* 
-     * ── ENCUADRE CORREGIDO ──
-     * Acercamos todas las fotos al centro (bajamos los valores de vh y vw).
-     * Ahora arman un marco prolijo y proporcionado, sin irse a los bordes.
+     * ── EL COLLAGE ORIGINAL ──
+     * Valores reducidos al máximo. Están tan cerca del centro (12vw, 15vh, etc) 
+     * que casi se tocan. Al hacer scroll, ese 15vw se multiplica x5 y se va a 75vw (fuera de pantalla).
      */
     const getPositionClass = (index: number) => {
         switch (index) {
             // Arriba Izquierda
-            case 0: return '[&>div]:!-top-[28vh] [&>div]:!-left-[25vw] [&>div]:!h-[14vh] [&>div]:!w-[38vw] md:[&>div]:!-top-[22vh] md:[&>div]:!-left-[24vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[20vw]'; 
+            case 0: return '[&>div]:!-top-[16vh] [&>div]:!-left-[16vw] [&>div]:!h-[18vh] [&>div]:!w-[30vw] md:[&>div]:!-top-[18vh] md:[&>div]:!-left-[14vw] md:[&>div]:!h-[24vh] md:[&>div]:!w-[22vw]'; 
             // Arriba Derecha
-            case 1: return '[&>div]:!-top-[32vh] [&>div]:!left-[25vw] [&>div]:!h-[12vh] [&>div]:!w-[38vw] md:[&>div]:!-top-[18vh] md:[&>div]:!left-[24vw] md:[&>div]:!h-[18vh] md:[&>div]:!w-[22vw]'; 
+            case 1: return '[&>div]:!-top-[18vh] [&>div]:!left-[18vw] [&>div]:!h-[14vh] [&>div]:!w-[28vw] md:[&>div]:!-top-[14vh] md:[&>div]:!left-[16vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[24vw]'; 
             // Abajo Izquierda
-            case 2: return '[&>div]:!top-[28vh] [&>div]:!-left-[25vw] [&>div]:!h-[14vh] [&>div]:!w-[38vw] md:[&>div]:!top-[22vh] md:[&>div]:!-left-[25vw] md:[&>div]:!h-[20vh] md:[&>div]:!w-[22vw]'; 
+            case 2: return '[&>div]:!top-[16vh] [&>div]:!-left-[18vw] [&>div]:!h-[16vh] [&>div]:!w-[28vw] md:[&>div]:!top-[18vh] md:[&>div]:!-left-[15vw] md:[&>div]:!h-[24vh] md:[&>div]:!w-[24vw]'; 
             // Abajo Derecha
-            case 3: return '[&>div]:!top-[32vh] [&>div]:!left-[25vw] [&>div]:!h-[14vh] [&>div]:!w-[38vw] md:[&>div]:!top-[20vh] md:[&>div]:!left-[22vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[20vw]'; 
-            // Centro Izquierda (Eventos) - Ahora está completamente adentro de la pantalla
-            case 4: return 'hidden md:flex md:[&>div]:!top-[2vh] md:[&>div]:!-left-[38vw] md:[&>div]:!h-[18vh] md:[&>div]:!w-[14vw]'; 
+            case 3: return '[&>div]:!top-[18vh] [&>div]:!left-[16vw] [&>div]:!h-[15vh] [&>div]:!w-[30vw] md:[&>div]:!top-[16vh] md:[&>div]:!left-[16vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[22vw]'; 
+            // Extremo Izquierdo (Para asimetría corporativa)
+            case 4: return 'hidden md:flex md:[&>div]:!top-[2vh] md:[&>div]:!-left-[32vw] md:[&>div]:!h-[26vh] md:[&>div]:!w-[14vw]'; 
             default: return '';
         }
     };
@@ -101,7 +106,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                     as="h2"
                     text="No se trata solo de todo lo que AguaVista tiene, sino de todo lo que te permite vivir"
                     delay={0.15}
-                    className="relative font-[family-name:var(--font-cormorant)] text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-[color:var(--av-text)] font-light max-w-[95%] md:max-w-4xl text-balance leading-tight mx-auto"
+                    className="relative font-[family-name:var(--font-cormorant)] text-[clamp(2.2rem,6vw,4.5rem)] text-[color:var(--av-text)] font-light max-w-[95%] md:max-w-4xl text-balance leading-tight mx-auto"
                 />
             </div>
 
@@ -112,10 +117,11 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                         style={{ opacity: reduceMotion ? 1 : textOpacity, y: reduceMotion ? 0 : textY }}
                         className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-4 text-center md:px-10"
                     >
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_65%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_80%,transparent)_0%,transparent_50%)] opacity-100" />
+                        {/* Sombra circular que protege al texto solo en el centro exacto */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_60%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_90%,transparent)_0%,transparent_45%)] opacity-100" />
                         
                         <div className="relative z-10 flex flex-col items-center justify-center w-full">
-                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4 md:mb-6">
+                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-3 md:mb-5 drop-shadow-md">
                                 Hay mucho más por descubrir
                             </span>
 
@@ -135,7 +141,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                             >
                                 <div className="relative">
                                     <motion.div
-                                        className="absolute inset-0 overflow-hidden rounded-lg md:rounded-xl shadow-2xl shadow-black/80"
+                                        className="absolute inset-0 overflow-hidden rounded-lg shadow-2xl shadow-black/80"
                                         initial={reduceMotion ? false : 'hidden'}
                                         animate={revealed || reduceMotion ? 'visible' : 'hidden'}
                                         variants={{
