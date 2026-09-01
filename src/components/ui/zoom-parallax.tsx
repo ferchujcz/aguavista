@@ -41,22 +41,18 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 
     const scales = [scale4, scale5, scale6, scale5, scale8];
 
+    // Detectamos cuando la sección entra en pantalla para mostrar las fotos y el texto
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
-    // El texto ahora no hace crossfade con una imagen, simplemente
-    // aparece suavemente al principio del recorrido y se queda ahí.
-    const textOpacity = useTransform(galleryScroll, (p) =>
-        reduceMotion ? 1 : Math.min(1, p / 0.15)
-    );
-
-    // Posiciones calculadas para 5 imágenes orbitando el centro libre
+    // Coordenadas calculadas: En celular están más separadas y son más chicas. En PC (md:) retoman su tamaño.
     const getPositionClass = (index: number) => {
         switch (index) {
-            case 0: return '[&>div]:!-top-[28vh] [&>div]:!-left-[22vw] [&>div]:!h-[35vh] [&>div]:!w-[25vw]'; // Arriba Izquierda
-            case 1: return '[&>div]:!-top-[22vh] [&>div]:!left-[26vw] [&>div]:!h-[25vh] [&>div]:!w-[30vw]'; // Arriba Derecha
-            case 2: return '[&>div]:!top-[28vh] [&>div]:!-left-[25vw] [&>div]:!h-[30vh] [&>div]:!w-[25vw]'; // Abajo Izquierda
-            case 3: return '[&>div]:!top-[26vh] [&>div]:!left-[22vw] [&>div]:!h-[30vh] [&>div]:!w-[22vw]'; // Abajo Derecha
-            case 4: return '[&>div]:!-top-[2vh] [&>div]:!-left-[45vw] [&>div]:!h-[20vh] [&>div]:!w-[15vw]'; // Centro Lejos Izquierda
+            case 0: return '[&>div]:!-top-[25vh] [&>div]:!-left-[28vw] [&>div]:!h-[18vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[28vh] md:[&>div]:!-left-[22vw] md:[&>div]:!h-[35vh] md:[&>div]:!w-[25vw]'; // Arriba Izquierda
+            case 1: return '[&>div]:!-top-[28vh] [&>div]:!left-[28vw] [&>div]:!h-[15vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[22vh] md:[&>div]:!left-[26vw] md:[&>div]:!h-[25vh] md:[&>div]:!w-[30vw]'; // Arriba Derecha
+            case 2: return '[&>div]:!top-[25vh] [&>div]:!-left-[28vw] [&>div]:!h-[18vh] [&>div]:!w-[35vw] md:[&>div]:!top-[28vh] md:[&>div]:!-left-[25vw] md:[&>div]:!h-[30vh] md:[&>div]:!w-[25vw]'; // Abajo Izquierda
+            case 3: return '[&>div]:!top-[28vh] [&>div]:!left-[28vw] [&>div]:!h-[16vh] [&>div]:!w-[35vw] md:[&>div]:!top-[26vh] md:[&>div]:!left-[22vw] md:[&>div]:!h-[30vh] md:[&>div]:!w-[22vw]'; // Abajo Derecha
+            // La 5ta foto la escondemos en el celular para no saturar la pantalla pequeña, pero en PC aparece por la izquierda.
+            case 4: return 'hidden md:flex [&>div]:!-top-[2vh] [&>div]:!-left-[42vw] [&>div]:!h-[20vh] [&>div]:!w-[15vw]'; 
             default: return '';
         }
     };
@@ -64,6 +60,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
     return (
         <section ref={mainContainer} className="relative w-full bg-[color:var(--av-base)]">
 
+            {/* ── Fondo Parallax ── */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div
                     style={{ y: backgroundY }}
@@ -74,6 +71,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                 </motion.div>
             </div>
 
+            {/* ── Textos Principales Superiores ── */}
             <div className="relative z-10 min-h-screen w-full flex flex-col items-center justify-center px-6 text-center md:px-10">
                 <div
                     aria-hidden="true"
@@ -95,41 +93,38 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                     as="h2"
                     text="No se trata solo de todo lo que AguaVista tiene, sino de todo lo que te permite vivir"
                     delay={0.15}
-                    className="relative font-[family-name:var(--font-cormorant)] text-[clamp(2rem,6vw,4.5rem)] text-[color:var(--av-text)] font-light max-w-[90%] md:max-w-4xl text-balance leading-tight mx-auto"
+                    className="relative font-[family-name:var(--font-cormorant)] text-[clamp(2.2rem,6vw,4.5rem)] text-[color:var(--av-text)] font-light max-w-[95%] md:max-w-4xl text-balance leading-tight mx-auto"
                 />
             </div>
 
+            {/* ── Galería Zoom Parallax ── */}
             <div ref={galleryContainer} className="relative h-[150vh] z-10">
                 <div className="sticky top-0 h-screen overflow-hidden">
 
-                    {/* ── TEXTO CENTRAL ADAPTADO PARA MÓVILES ── */}
+                    {/* ── TEXTO CENTRAL (AHORA APARECE INMEDIATAMENTE) ── */}
                     <motion.div
-                        style={{ opacity: textOpacity }}
-                        className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-4 text-center sm:px-10"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: revealed ? 1 : 0 }}
+                        transition={{ duration: 1.2, delay: 0.1 }}
+                        className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-5 text-center sm:px-10"
                     >
-                        <div
-                            aria-hidden="true"
-                            className="pointer-events-none absolute inset-0"
-                            style={{
-                                background:
-                                    'radial-gradient(42% 32% at 50% 50%, color-mix(in oklab, var(--av-base) 95%, transparent) 0%, color-mix(in oklab, var(--av-base) 65%, transparent) 55%, transparent 100%)',
-                            }}
-                        />
+                        {/* Sombra de contraste para asegurar la legibilidad del texto en móviles */}
+                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,var(--av-base)_25%,transparent_75%)] md:bg-[radial-gradient(42%_32%_at_50%_50%,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_100%)] opacity-95" />
+                        
+                        <div className="relative z-10 flex flex-col items-center justify-center w-full">
+                            <SlideUp
+                                innerClassName="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs lg:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4"
+                            >
+                                Hay mucho más por descubrir
+                            </SlideUp>
 
-                        <SlideUp
-                            className="relative"
-                            innerClassName="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs lg:text-sm tracking-[0.3em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4"
-                        >
-                            Hay mucho más por descubrir
-                        </SlideUp>
-
-                        {/* El uso de clamp() ajusta matemáticamente el tamaño entre celular y PC */}
-                        <SplitText
-                            as="h3"
-                            text="Explorá cada espacio y empezá a imaginar tu vida en AguaVista"
-                            delay={0.12}
-                            className="relative mt-2 w-full max-w-[95%] md:max-w-3xl text-balance font-[family-name:var(--font-cormorant)] text-[clamp(1.75rem,5.5vw,3.5rem)] text-[color:var(--av-text)] font-light leading-[1.15] drop-shadow-[0_4px_24px_rgba(10,26,20,0.9)] mx-auto"
-                        />
+                            <SplitText
+                                as="h3"
+                                text="Explorá cada espacio y empezá a imaginar tu vida en AguaVista"
+                                delay={0.3}
+                                className="w-full max-w-[100%] md:max-w-3xl text-balance font-[family-name:var(--font-cormorant)] text-[clamp(1.85rem,6.5vw,3.5rem)] text-[color:var(--av-text)] font-light leading-[1.1] md:leading-[1.15] drop-shadow-[0_4px_24px_rgba(10,26,20,0.95)] mx-auto"
+                            />
+                        </div>
                     </motion.div>
 
                     {/* ── 5 IMÁGENES EN ÓRBITA ── */}
@@ -141,9 +136,10 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                                 style={{ scale }}
                                 className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${getPositionClass(index)}`}
                             >
-                                <div className="relative h-[25vh] w-[25vw]">
+                                <div className="relative">
                                     <motion.div
-                                        className="absolute inset-0 overflow-hidden"
+                                        // Bordes redondeados sutiles para darle el toque premium
+                                        className="absolute inset-0 overflow-hidden rounded-xl md:rounded-2xl shadow-2xl shadow-black/50"
                                         initial={reduceMotion ? false : 'hidden'}
                                         animate={revealed || reduceMotion ? 'visible' : 'hidden'}
                                         variants={{
@@ -163,8 +159,8 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                                             src={src || '/placeholder.svg'}
                                             alt={alt || `Parallax image ${index + 1}`}
                                             fill
-                                            className="object-cover shadow-2xl"
-                                            sizes="(max-width: 768px) 100vw, 33vw"
+                                            className="object-cover"
+                                            sizes="(max-width: 768px) 40vw, 25vw"
                                         />
                                     </motion.div>
                                 </div>
