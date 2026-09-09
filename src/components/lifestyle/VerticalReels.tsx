@@ -106,22 +106,16 @@ export default function VerticalReels({
        */}
       <div className="relative z-10 max-w-7xl mx-auto flex flex-col md:grid md:grid-cols-[40%_1fr] md:items-start px-4 md:px-10">
 
-        {/*
-         * TEXTO — Mobile: order-1 (arriba), flujo normal
-         *         Desktop: col-start-1, con parallax vertical via motion.div4
-         */}
+        {/* TEXTO — Contenedor nativo STICKY, 100% libre de bugs */}
         <div
           ref={textRef}
           className="relative w-full py-16
-                      md:col-start-1 md:row-start-1 md:py-32 md:self-start
+                      md:col-start-1 md:row-start-1 md:self-start
                       flex flex-col justify-start md:justify-center md:pr-10
-                      order-1 pointer-events-none"
+                      order-1 pointer-events-none md:sticky md:top-0 md:h-screen"
         >
-        {/* Wrapper de parallax — solo activo en desktop */}
-          <motion.div
-            style={{ y: textY }}
-            className="hidden md:flex flex-col"
-          >
+          {/* Wrapper desktop */}
+          <div className="hidden md:flex flex-col">
             <motion.h2
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -150,9 +144,9 @@ export default function VerticalReels({
             >
               Eso es AguaVista.
             </motion.p>
-          </motion.div>
+          </div>
 
-          {/* Mobile: sin parallax, flujo normal */}
+          {/* Wrapper Mobile */}
           <div className="flex flex-col md:hidden">
             <motion.h2
               initial={{ opacity: 0, y: 16 }}

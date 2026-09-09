@@ -28,7 +28,7 @@
     "cta": "Consultar"
   },
   "hero": {
-    "kicker": "UNA CATEGORÍA PROPIA",
+    "kicker": "",
     "title": "",
     "titleAccent": "Hay lugares para vivir. Y lugares que definen cómo querés vivir.",
     "subtitle": "",
@@ -58,8 +58,8 @@
   },
   "amenities": {
     "kicker": "UN ESTILO DE VIDA EXCEPCIONAL",
-    "title": "Lo extraordinario<br/>forma parte de lo cotidiano.",
-    "subtitle": "Golf, náutica, aviación, naturaleza y río.<br/>Todo dentro de AguaVista.",
+    "title": "Lo extraordinario forma parte de lo cotidiano.",
+    "subtitle": "Golf, náutica, aviación, naturaleza y río. Todo dentro de AguaVista.",
     "items": {
       "golf": {
         "title": "Golf",
