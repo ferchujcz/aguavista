@@ -1,11 +1,17 @@
 'use client';
 
-import { useScroll, useTransform, motion, useInView, useReducedMotion } from 'framer-motion';
+import {
+    useScroll,
+    useTransform,
+    motion,
+    useInView,
+    useReducedMotion,
+} from 'framer-motion';
 import { useRef } from 'react';
 import Image from 'next/image';
 
 import { SplitText } from '@/components/motion/SplitText';
-import { SlideUp, organicDelay } from '@/components/motion/SlideUp';
+import { SlideUp } from '@/components/motion/SlideUp';
 import { EASE_LUX } from '@/components/motion/Reveal';
 
 interface ImgData {
@@ -21,132 +27,399 @@ interface ZoomParallaxProps {
 export function ZoomParallax({ images }: ZoomParallaxProps) {
     const reduceMotion = useReducedMotion();
 
-    const mainContainer = useRef(null);
-    const { scrollYProgress: globalScroll } = useScroll({
-        target: mainContainer,
-        offset: ['start end', 'end start'],
-    });
+    const sectionRef = useRef<HTMLElement>(null);
+    const galleryRef = useRef<HTMLDivElement>(null);
 
-    const backgroundY = useTransform(globalScroll, [0, 1], ['0%', '20%']);
-
-    const galleryContainer = useRef(null);
-    const { scrollYProgress: galleryScroll } = useScroll({
-        target: galleryContainer,
+    const { scrollYProgress } = useScroll({
+        target: galleryRef,
         offset: ['start start', 'end end'],
     });
 
-    const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
+    const revealed = useInView(galleryRef, {
+        once: true,
+        amount: 0.15,
+    });
 
-    /* ── LA MAGIA ORIGINAL RESTAURADA ── */
-    // Al aplicar scale al contenedor padre, las imágenes se separan 
-    // solas hacia los bordes. El centro escala a x4 (llena la pantalla perfecto).
-    const scale4 = useTransform(galleryScroll, [0, 1], [1, 4]);
-    const scale5 = useTransform(galleryScroll, [0, 1], [1, 5]);
-    const scale6 = useTransform(galleryScroll, [0, 1], [1, 6]);
-    const scale8 = useTransform(galleryScroll, [0, 1], [1, 8]);
-    const scales = [scale4, scale5, scale6, scale5, scale8];
+    /*
+    |--------------------------------------------------------------------------
+    | FONDO
+    |--------------------------------------------------------------------------
+    */
 
-    /* ── ANIMACIÓN CENTRAL (OSCURECE AL 60%) ── */
-    const centerDarkness = useTransform(galleryScroll, [0.3, 0.65], [0, 0.6]);
-    const textOpacity = useTransform(galleryScroll, [0.4, 0.65], [0, 1]);
-    const textY = useTransform(galleryScroll, [0.4, 0.65], [40, 0]);
+    const backgroundY = useTransform(
+        scrollYProgress,
+        [0, 1],
+        ['0%', '12%']
+    );
 
-    /* 
-     * ── DIMENSIONES INICIALES COMPACTAS (EL PUZZLE) ──
-     * Arrancan chicas para que al multiplicarse x4 llenen la pantalla 
-     * sin verse pixeladas ni extremadamente zomeadas.
-     */
-    const getInitialClasses = (isCenter?: boolean, orbitIndex: number = 0) => {
-        if (isCenter) {
-            // El collage central (es horizontal, lo hacemos apaisado)
-            return '[&>div]:!top-0 [&>div]:!left-0 [&>div]:!w-[55vw] [&>div]:!h-[25vh] md:[&>div]:!w-[32vw] md:[&>div]:!h-[28vh]';
-        }
-        switch (orbitIndex) {
-            case 0: return '[&>div]:!-top-[26vh] [&>div]:!-left-[16vw] [&>div]:!w-[24vw] [&>div]:!h-[16vh] md:[&>div]:!-top-[28vh] md:[&>div]:!-left-[14vw] md:[&>div]:!w-[16vw] md:[&>div]:!h-[20vh]'; 
-            case 1: return '[&>div]:!-top-[22vh] [&>div]:!left-[22vw] [&>div]:!w-[28vw] [&>div]:!h-[12vh] md:[&>div]:!-top-[20vh] md:[&>div]:!left-[18vw] md:[&>div]:!w-[18vw] md:[&>div]:!h-[16vh]'; 
-            case 2: return '[&>div]:!top-[26vh] [&>div]:!-left-[16vw] [&>div]:!w-[24vw] [&>div]:!h-[16vh] md:[&>div]:!top-[28vh] md:[&>div]:!-left-[14vw] md:[&>div]:!w-[16vw] md:[&>div]:!h-[20vh]'; 
-            case 3: return '[&>div]:!top-[22vh] [&>div]:!left-[22vw] [&>div]:!w-[28vw] [&>div]:!h-[12vh] md:[&>div]:!top-[20vh] md:[&>div]:!left-[18vw] md:[&>div]:!w-[18vw] md:[&>div]:!h-[16vh]'; 
-            case 4: return 'hidden md:flex md:[&>div]:!top-0 md:[&>div]:!-left-[32vw] md:[&>div]:!w-[12vw] md:[&>div]:!h-[22vh]'; 
-            default: return '';
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | IMAGEN CENTRAL
+    |--------------------------------------------------------------------------
+    |
+    | NO hacemos scale x4/x5/x8.
+    |
+    | El collage central crece de forma moderada.
+    | El propio viewport se encarga de darle protagonismo.
+    |
+    */
+
+    const centerScale = useTransform(
+        scrollYProgress,
+        [0, 0.35, 0.65, 1],
+        [1, 1.08, 1.16, 1.2]
+    );
+
+    const centerY = useTransform(
+        scrollYProgress,
+        [0, 1],
+        ['0%', '-1%']
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | OSCURECIMIENTO
+    |--------------------------------------------------------------------------
+    |
+    | Máximo: 60%
+    |
+    */
+
+    const centerDarkness = useTransform(
+        scrollYProgress,
+        [0.42, 0.7],
+        [0, 0.6]
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | TEXTO
+    |--------------------------------------------------------------------------
+    */
+
+    const textOpacity = useTransform(
+        scrollYProgress,
+        [0.54, 0.72],
+        [0, 1]
+    );
+
+    const textY = useTransform(
+        scrollYProgress,
+        [0.54, 0.72],
+        [35, 0]
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | CONFIGURACIÓN DEL COLLAGE
+    |--------------------------------------------------------------------------
+    |
+    | Estas posiciones son deliberadamente limpias.
+    | Las imágenes NO se escalan brutalmente.
+    |
+    */
+
+    const peripheralConfig = [
+        {
+            // GOLF — arriba izquierda
+            className:
+                'left-[7%] top-[8%] w-[25vw] max-w-[360px] aspect-[16/10] md:left-[25%] md:top-[7%] md:w-[17vw]',
+            exitX: '-48vw',
+            exitY: '-38vh',
+            exitRotate: -8,
+        },
+        {
+            // NÁUTICA — arriba derecha
+            className:
+                'right-[7%] top-[11%] w-[28vw] max-w-[390px] aspect-[16/9] md:right-[22%] md:top-[13%] md:w-[19vw]',
+            exitX: '48vw',
+            exitY: '-38vh',
+            exitRotate: 8,
+        },
+        {
+            // PLAYA — abajo izquierda
+            className:
+                'left-[7%] bottom-[10%] w-[29vw] max-w-[400px] aspect-[16/10] md:left-[24%] md:bottom-[8%] md:w-[18vw]',
+            exitX: '-48vw',
+            exitY: '40vh',
+            exitRotate: -7,
+        },
+        {
+            // SPA — abajo derecha
+            className:
+                'right-[7%] bottom-[12%] w-[28vw] max-w-[390px] aspect-[16/10] md:right-[22%] md:bottom-[10%] md:w-[18vw]',
+            exitX: '48vw',
+            exitY: '40vh',
+            exitRotate: 7,
+        },
+        {
+            // EVENTOS — lateral izquierdo
+            className:
+                'hidden md:block left-[5%] top-1/2 -translate-y-1/2 w-[14vw] max-w-[260px] aspect-[4/3]',
+            exitX: '-55vw',
+            exitY: '0vh',
+            exitRotate: -10,
+        },
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | PROGRESIÓN DE SALIDA
+    |--------------------------------------------------------------------------
+    |
+    | Las imágenes exteriores empiezan a salir gradualmente.
+    | No desaparecen de golpe.
+    |
+    */
+
+    const getPeripheralMotion = (config: (typeof peripheralConfig)[number]) => {
+        const x = useTransform(
+            scrollYProgress,
+            [0, 0.3, 0.72],
+            ['0vw', '0vw', config.exitX]
+        );
+
+        const y = useTransform(
+            scrollYProgress,
+            [0, 0.3, 0.72],
+            ['0vh', '0vh', config.exitY]
+        );
+
+        const opacity = useTransform(
+            scrollYProgress,
+            [0, 0.38, 0.72],
+            [1, 1, 0]
+        );
+
+        const rotate = useTransform(
+            scrollYProgress,
+            [0, 0.72],
+            [0, config.exitRotate]
+        );
+
+        const scale = useTransform(
+            scrollYProgress,
+            [0, 0.72],
+            [1, 0.92]
+        );
+
+        return {
+            x,
+            y,
+            opacity,
+            rotate,
+            scale,
+        };
     };
 
-    let orbitCounter = 0;
+    /*
+    |--------------------------------------------------------------------------
+    | SECCIÓN
+    |--------------------------------------------------------------------------
+    */
 
     return (
-        <section ref={mainContainer} className="relative w-full bg-[color:var(--av-base)]">
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div style={{ y: backgroundY }} className="absolute -top-[10%] left-0 w-full h-[120%]">
-                    <Image src="/playa.webp" alt="Fondo textura" fill className="object-cover opacity-15" sizes="100vw" />
+        <section
+            ref={sectionRef}
+            className="relative w-full bg-[color:var(--av-base)]"
+        >
+            {/* Fondo */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                <motion.div
+                    style={{ y: reduceMotion ? 0 : backgroundY }}
+                    className="absolute -top-[8%] left-0 h-[116%] w-full"
+                >
+                    <Image
+                        src="/playa.webp"
+                        alt=""
+                        fill
+                        priority={false}
+                        className="object-cover opacity-[0.12]"
+                        sizes="100vw"
+                    />
+
                     <div className="absolute inset-0 bg-gradient-to-b from-[color:var(--av-base)] via-transparent to-[color:var(--av-base)]" />
                 </motion.div>
             </div>
 
-            <div className="relative z-10 min-h-screen w-full flex flex-col items-center justify-center px-6 text-center md:px-10">
-                <SlideUp className="relative" innerClassName="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs font-light tracking-[0.3em] text-[color:var(--av-lux)] uppercase mb-8">
+            {/* Intro */}
+            <div className="relative z-10 flex min-h-screen w-full flex-col items-center justify-center px-6 text-center md:px-10">
+                <SlideUp
+                    className="relative"
+                    innerClassName="mb-8 font-[family-name:var(--font-josefin)] text-[10px] font-light uppercase tracking-[0.3em] text-[color:var(--av-lux)] md:text-xs"
+                >
                     Una categoría propia
                 </SlideUp>
 
-                <SplitText as="h2" text="Hay lugares para vivir. Y lugares que definen cómo querés vivir." delay={0.15} className="relative font-[family-name:var(--font-cormorant)] text-[clamp(2.2rem,6vw,4.5rem)] text-[color:var(--av-text)] font-light max-w-[95%] md:max-w-4xl text-balance leading-tight mx-auto" />
+                <SplitText
+                    as="h2"
+                    text="Hay lugares para vivir. Y lugares que definen cómo querés vivir."
+                    delay={0.15}
+                    className="relative mx-auto max-w-[95%] text-balance font-[family-name:var(--font-cormorant)] text-[clamp(2.2rem,6vw,4.5rem)] font-light leading-tight text-[color:var(--av-text)] md:max-w-4xl"
+                />
             </div>
 
-            <div ref={galleryContainer} className="relative h-[250vh] z-10">
-                <div className="sticky top-0 h-screen overflow-hidden">
+            {/* 
+            |--------------------------------------------------------------------------
+            | GALERÍA
+            |--------------------------------------------------------------------------
+            */}
+
+            <div
+                ref={galleryRef}
+                className="relative z-10 h-[230vh] md:h-[250vh]"
+            >
+                <div className="sticky top-0 h-screen w-full overflow-hidden">
+
+                    {/* 
+                    |--------------------------------------------------------------------------
+                    | TEXTO FINAL
+                    |--------------------------------------------------------------------------
+                    */}
 
                     <motion.div
-                        style={{ opacity: reduceMotion ? 1 : textOpacity, y: reduceMotion ? 0 : textY }}
-                        className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center px-4 text-center md:px-10"
+                        style={{
+                            opacity: reduceMotion ? 1 : textOpacity,
+                            y: reduceMotion ? 0 : textY,
+                        }}
+                        className="pointer-events-none absolute inset-0 z-50 flex items-center justify-center px-6 text-center md:px-10"
                     >
-                        <div className="relative z-10 flex flex-col items-center justify-center w-full">
-                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4 md:mb-6 drop-shadow-lg">
+                        <div className="flex w-full max-w-5xl flex-col items-center">
+
+                            <span className="mb-5 font-[family-name:var(--font-josefin)] text-[9px] font-light uppercase tracking-[0.28em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.8)] md:mb-7 md:text-sm md:tracking-[0.42em]">
                                 Una experiencia integral
                             </span>
-                            <h3 className="w-full max-w-[95%] md:max-w-4xl text-balance font-[family-name:var(--font-cormorant)] text-[clamp(1.75rem,6.5vw,4.5rem)] text-white font-light leading-[1.1] md:leading-[1.15] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] mx-auto">
-                                Todo lo que buscabas por separado,<br className="hidden md:block"/> acá sucede en un mismo lugar.
+
+                            <h3 className="max-w-[900px] text-balance font-[family-name:var(--font-cormorant)] text-[clamp(2rem,6.5vw,4.8rem)] font-light leading-[1.05] text-white drop-shadow-[0_4px_30px_rgba(0,0,0,0.95)]">
+                                Todo lo que buscabas por separado,
+                                <br className="hidden md:block" />
+                                {' '}acá sucede en un mismo lugar.
                             </h3>
+
                         </div>
                     </motion.div>
 
-                    {images.map((img, index) => {
-                        const isCenter = !!img.isCenter;
-                        const currentOrbit = isCenter ? -1 : orbitCounter++;
-                        const scale = isCenter ? scale4 : scales[currentOrbit % scales.length];
+                    {/* 
+                    |--------------------------------------------------------------------------
+                    | IMAGEN CENTRAL
+                    |--------------------------------------------------------------------------
+                    |
+                    | IMPORTANTE:
+                    | El collage ya contiene varias imágenes.
+                    | No lo hacemos x4.
+                    |
+                    */}
 
-                        return (
+                    {images
+                        .filter((img) => img.isCenter)
+                        .map((img, index) => (
                             <motion.div
-                                key={index}
-                                style={reduceMotion ? {} : { scale }}
-                                className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${getInitialClasses(isCenter, currentOrbit)}`}
+                                key={`center-${index}`}
+                                style={
+                                    reduceMotion
+                                        ? {}
+                                        : {
+                                              scale: centerScale,
+                                              y: centerY,
+                                          }
+                                }
+                                className="absolute inset-0 z-20 flex items-center justify-center"
                             >
-                                <div className="relative">
+                                <div className="relative h-[31vh] w-[88vw] overflow-hidden rounded-2xl shadow-av-lg sm:h-[34vh] sm:w-[82vw] md:h-[42vh] md:w-[68vw] md:max-w-[1100px]">
+                                    <Image
+                                        src={img.src}
+                                        alt={img.alt || 'Experiencia AguaVista'}
+                                        fill
+                                        priority
+                                        quality={90}
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 88vw, 68vw"
+                                    />
+
+                                    {/* Oscurecimiento máximo 60% */}
                                     <motion.div
-                                        className="absolute inset-0 overflow-hidden rounded-xl md:rounded-2xl shadow-av-lg"
-                                        initial={reduceMotion ? false : 'hidden'}
-                                        animate={revealed || reduceMotion ? 'visible' : 'hidden'}
-                                        variants={{
-                                            hidden: { clipPath: 'inset(0% 50% 0% 50%)', opacity: 0 },
-                                            visible: {
-                                                clipPath: 'inset(0% 0% 0% 0%)',
-                                                opacity: 1,
-                                                transition: { duration: 1.15, ease: EASE_LUX, delay: organicDelay(index, 0.09) },
-                                            },
+                                        style={{
+                                            opacity: reduceMotion
+                                                ? 0.6
+                                                : centerDarkness,
                                         }}
-                                    >
-                                        <Image
-                                            src={img.src || '/placeholder.svg'}
-                                            alt={img.alt || `Parallax image ${index + 1}`}
-                                            fill
-                                            className="object-cover"
-                                            sizes={isCenter ? "100vw" : "(max-width: 768px) 50vw, 35vw"}
-                                        />
-                                        {isCenter && (
-                                            <motion.div style={{ opacity: centerDarkness }} className="absolute inset-0 bg-black z-10" />
-                                        )}
-                                    </motion.div>
+                                        className="absolute inset-0 z-10 bg-black"
+                                    />
                                 </div>
                             </motion.div>
-                        );
-                    })}
+                        ))}
+
+                    {/* 
+                    |--------------------------------------------------------------------------
+                    | IMÁGENES PERIFÉRICAS
+                    |--------------------------------------------------------------------------
+                    */}
+
+                    {images
+                        .filter((img) => !img.isCenter)
+                        .slice(0, peripheralConfig.length)
+                        .map((img, index) => {
+                            const config = peripheralConfig[index];
+                            const motionValues =
+                                getPeripheralMotion(config);
+
+                            return (
+                                <motion.div
+                                    key={`peripheral-${index}`}
+                                    style={
+                                        reduceMotion
+                                            ? {}
+                                            : {
+                                                  x: motionValues.x,
+                                                  y: motionValues.y,
+                                                  opacity:
+                                                      motionValues.opacity,
+                                                  rotate:
+                                                      motionValues.rotate,
+                                                  scale:
+                                                      motionValues.scale,
+                                              }
+                                    }
+                                    initial={
+                                        reduceMotion
+                                            ? false
+                                            : {
+                                                  opacity: 0,
+                                                  scale: 0.94,
+                                              }
+                                    }
+                                    animate={
+                                        revealed || reduceMotion
+                                            ? {
+                                                  opacity: 1,
+                                                  scale: 1,
+                                              }
+                                            : {
+                                                  opacity: 0,
+                                                  scale: 0.94,
+                                              }
+                                    }
+                                    transition={{
+                                        duration: 1,
+                                        ease: EASE_LUX,
+                                        delay: index * 0.08,
+                                    }}
+                                    className={`absolute z-30 overflow-hidden rounded-xl shadow-av-lg md:rounded-2xl ${config.className}`}
+                                >
+                                    <Image
+                                        src={img.src}
+                                        alt={
+                                            img.alt ||
+                                            `Amenity ${index + 1}`
+                                        }
+                                        fill
+                                        quality={88}
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 32vw, 20vw"
+                                    />
+                                </motion.div>
+                            );
+                        })}
                 </div>
             </div>
         </section>
