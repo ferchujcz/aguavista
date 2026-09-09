@@ -124,10 +124,13 @@ export default async function HomePage({
 
       <ZoomParallax
         images={[
-          { src: "/amenities-hero-golf.webp", alt: "Cancha de Golf en AguaVista" },
+          // Esta es la imagen central que se oscurece
+          { src: "/collagemed.webp", alt: "Experiencia AguaVista", isCenter: true },
+          // Estas son las 5 imágenes periféricas que salen volando
+          { src: "/amenities-golf.webp", alt: "Cancha de Golf en AguaVista" },
           { src: "/amenities-nautica.webp", alt: "Marina Privada AguaVista" },
-          { src: "/amenities-playa.webp", alt: "Playa Privada sobre el Río Paraná" },
-          { src: "/amenities-spa.webp", alt: "Spa y Relax en AguaVista" },
+          { src: "/amenities-playa.webp", alt: "Playa Privada" },
+          { src: "/amenities-spa.webp", alt: "Spa y Relax" },
           { src: "/amenities-eventos.webp", alt: "Eventos exclusivos" },
         ]}
       />

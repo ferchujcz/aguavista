@@ -28,22 +28,22 @@
     "cta": "Enquire"
   },
   "hero": {
-    "kicker": "Private residential community on the Paraná River",
-    "title": "Land, river and sky",
-    "titleAccent": "in one place",
+    "kicker": "A CLASS OF ITS OWN",
+    "title": "There are places to live.",
+    "titleAccent": "And places that define how you want to live.",
     "subtitle": "Championship golf, a private marina and an executive airstrip, 40 minutes from Asunción.",
     "videoAlt": "Aerial view of the AguaVista community on the Paraná River"
   },
   "stats": {
     "kicker": "Available lots",
-    "title": "Invest in quality of life",
-    "titleAccent": "for you and your family",
+    "title": "YOUR NEXT DECISION",
+    "titleAccent": "CAN CHANGE HOW YOU LIVE.",
     "surface": {
       "value": "800 m²",
       "label": "Minimum lot size"
     },
     "installments": {
-      "value": "84",
+      "value": "72",
       "label": "Interest-free instalments"
     },
     "downpayment": {
@@ -57,9 +57,9 @@
     "cta": "View available lots"
   },
   "amenities": {
-    "kicker": "Amenities",
-    "title": "Everything that makes AguaVista unique",
-    "subtitle": "A community designed so you never have to leave to live well.",
+    "kicker": "AN EXCEPTIONAL LIFESTYLE",
+    "title": "The extraordinary is part of the everyday.",
+    "subtitle": "Golf, marina, aviation, nature and river. All inside AguaVista.",
     "items": {
       "golf": {
         "title": "Golf",
@@ -197,28 +197,64 @@
     "title": "Frequently asked questions",
     "items": [
       {
-        "q": "What financing options are available?",
-        "a": "We finance up to 84 interest-free instalments in US dollars, with a down payment starting at 5% of the lot value. We also accept trade-ins and tailored plans for investors."
+        "q": "What is AguaVista?",
+        "a": "AguaVista is a residential country club in Paraguay combining real estate, golf, beach, marina, sports, and an executive airport. If you'd like to explore available options, I can put you in touch with an advisor."
       },
       {
-        "q": "Is the property secured 24 hours a day?",
-        "a": "Yes. AguaVista has a triple security perimeter, biometric access control, thermal camera surveillance and on-site guards 24 hours a day, every day of the year."
+        "q": "Where is AguaVista located?",
+        "a": "It's in San Juan del Paraná, very close to Encarnación and the border with Argentina. Let me know where you're coming from, and an advisor can explain the best way to get here."
       },
       {
-        "q": "What does the owner membership include?",
-        "a": "Every owner gets access to the golf course, the Tennis House, the Spa & Wellness centre, the private beach, the marina and the executive airport, at no additional cost per use."
+        "q": "What properties are available to buy?",
+        "a": "There are different options for lots, houses, and other properties, and availability changes constantly. To receive current options and prices, it's best to speak directly with an advisor."
       },
       {
-        "q": "What is the minimum lot size?",
-        "a": "Lots start at 800 m². There are also larger parcels on the riverfront and along the golf course, priced individually."
+        "q": "How much does a property in AguaVista cost?",
+        "a": "It depends on the location, size, and type of property. We have alternatives for different budgets. Would you like an advisor to send you today's available options?"
       },
       {
-        "q": "How far is it from Asunción?",
-        "a": "Roughly 40 minutes by car on paved road, or a 12-minute flight to the community's private airstrip."
+        "q": "Can a foreigner buy?",
+        "a": "Yes, there are transactions with foreign buyers, though requirements may vary depending on nationality and property. An advisor can review your case and explain the process."
       },
       {
-        "q": "Can I build whenever I want?",
-        "a": "Yes. There is no mandatory construction deadline. There is a building code that ensures every project respects the masterplan's aesthetics and density."
+        "q": "Do I need Paraguayan residency to buy?",
+        "a": "Not necessarily. The situation depends on each buyer and the property. If you let me know your nationality, I can refer you to an advisor to guide you properly."
+      },
+      {
+        "q": "Can the purchase be financed?",
+        "a": "Some properties may offer different payment terms or financing. To find out about current options, speak with an advisor."
+      },
+      {
+        "q": "How much are the HOA/maintenance fees?",
+        "a": "The amount can depend on the property and current club conditions. An advisor can give you the updated fee and explain what it includes."
+      },
+      {
+        "q": "Does AguaVista have a golf course?",
+        "a": "Yes. Golf is one of AguaVista's great differentiators, along with the beach, the marina, and its sports facilities. If you want to know about properties near or overlooking the golf course, I can connect you with an advisor."
+      },
+      {
+        "q": "Does AguaVista have its own airport?",
+        "a": "Yes. AguaVista features AVA – AguaVista Airport Executive. For information on flight operations or to arrange a visit, speak directly with an advisor."
+      },
+      {
+        "q": "Does it have a beach and river access?",
+        "a": "Yes. AguaVista offers a lifestyle linked to the Paraná River, with a beach and nautical activities. If you want to see the club in person, we can arrange a visit."
+      },
+      {
+        "q": "Can I rent out my property?",
+        "a": "There are properties within AguaVista intended for short-term rental. Conditions depend on the property and current regulations. An advisor can explain which properties are best suited for investment."
+      },
+      {
+        "q": "What return on investment can a property generate?",
+        "a": "Profitability depends on purchase price, property type, rates, occupancy, and expenses. To run real numbers on a specific property, speak with an advisor."
+      },
+      {
+        "q": "Can I visit AguaVista before buying?",
+        "a": "Yes. We can arrange a visit so you can see the club, its amenities, and available properties. Let me know what day you'd like to come, and I'll connect you with an advisor."
+      },
+      {
+        "q": "I want to buy or invest, who do I talk to?",
+        "a": "With an advisor from Solari Bienes Raíces."
       }
     ]
   },
@@ -239,7 +275,7 @@
     "intro": "At AguaVista we treat your personal data with the same care we give the property itself. This policy explains what information we collect, what we use it for, and what rights you have over it.",
     "sections": [
       {
-        "title": "1. Data controller",
+        "title": "AguaVista S.A., with registered address at Antequera esquina 25 de mayo, local 1., Encarnación, Paraguay, is the controller",
         "body": "AguaVista S.A., with registered address at San Juan del Paraná, Itapúa, Paraguay, is the controller of the personal data collected through this website. You can reach us at info@aguavista.com.py with any question about this policy."
       },
       {
@@ -286,7 +322,7 @@
     "intro": "These terms govern your use of the AguaVista website. By browsing it or sending us an enquiry, you accept the conditions below. Please read them carefully.",
     "sections": [
       {
-        "title": "1. Site ownership",
+        "title": "This site is operated by AguaVista S.A., with registered address at Antequera esquina 25 de mayo, local 1., Encarnación, Paraguay",
         "body": "This site is operated by AguaVista S.A., with registered address at San Juan del Paraná, Itapúa, Paraguay. Any question about these terms can be sent to info@aguavista.com.py."
       },
       {
@@ -345,7 +381,7 @@
   "metadata": {
     "title": "AguaVista | Private community on the Paraná River",
     "titleTemplate": "%s | AguaVista",
-    "description": "A 1,200-hectare private community on the Paraná River. Championship golf, marina, executive airport and lots from 800 m² with 84-instalment financing.",
+    "description": "A 1,200-hectare private community on the Paraná River. Championship golf, marina, executive airport and lots from 800 m² with 72-instalment financing.",
     "privacyTitle": "Privacy policy",
     "privacyDescription": "How AguaVista collects, uses and protects your personal data.",
     "termsTitle": "Terms and conditions",

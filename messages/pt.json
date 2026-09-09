@@ -28,22 +28,22 @@
     "cta": "Consultar"
   },
   "hero": {
-    "kicker": "Condomínio privado às margens do Rio Paraná",
-    "title": "Terra, rio e ar",
-    "titleAccent": "em um só lugar",
+    "kicker": "UMA CATEGORIA PRÓPRIA",
+    "title": "Existem lugares para morar.",
+    "titleAccent": "E lugares que definem como você quer viver.",
     "subtitle": "Golfe profissional, náutica privada e aeroporto executivo a 40 minutos de Assunção.",
     "videoAlt": "Vista aérea do condomínio AguaVista às margens do Rio Paraná"
   },
   "stats": {
     "kicker": "Lotes disponíveis",
-    "title": "Invista em qualidade de vida",
-    "titleAccent": "para você e sua família",
+    "title": "SUA PRÓXIMA DECISÃO",
+    "titleAccent": "PODE MUDAR SUA FORMA DE VIVER.",
     "surface": {
       "value": "800 m²",
       "label": "Área mínima"
     },
     "installments": {
-      "value": "84",
+      "value": "72",
       "label": "Parcelas sem juros"
     },
     "downpayment": {
@@ -57,9 +57,9 @@
     "cta": "Ver lotes disponíveis"
   },
   "amenities": {
-    "kicker": "Amenities",
-    "title": "Tudo o que torna o AguaVista único",
-    "subtitle": "Um condomínio pensado para você não precisar sair para viver bem.",
+    "kicker": "UM ESTILO DE VIDA EXCEPCIONAL",
+    "title": "O extraordinário faz parte do cotidiano.",
+    "subtitle": "Golfe, náutica, aviação, natureza e rio. Tudo dentro do AguaVista.",
     "items": {
       "golf": {
         "title": "Golfe",
@@ -197,28 +197,64 @@
     "title": "Perguntas frequentes",
     "items": [
       {
-        "q": "Quais são as opções de financiamento?",
-        "a": "Financiamos em até 84 parcelas em dólares sem juros, com entrada a partir de 5% do valor do lote. Também aceitamos permutas e planos sob medida para investidores."
+        "q": "O que é o AguaVista?",
+        "a": "O AguaVista é um condomínio residencial no Paraguai que combina imóveis, golfe, praia, náutica, esportes e um aeroporto executivo. Se você quiser conhecer as opções disponíveis, posso colocá-lo em contato com um consultor."
       },
       {
-        "q": "O condomínio tem segurança 24 horas?",
-        "a": "Sim. O AguaVista conta com triplo anel de segurança, controle de acesso biométrico, vigilância perimetral com câmeras térmicas e equipe de guarda 24 horas por dia, todos os dias do ano."
+        "q": "Onde o AguaVista está localizado?",
+        "a": "Fica em San Juan del Paraná, muito perto de Encarnación e da fronteira com a Argentina. Me diga de onde você vem e um consultor pode explicar a melhor forma de chegar."
       },
       {
-        "q": "O que inclui a associação de proprietário?",
-        "a": "Todos os proprietários têm acesso ao campo de golfe, à House do Tênis, ao Spa & Bem-estar, à praia privada, à marina e ao aeroporto executivo, sem custo adicional por uso."
+        "q": "Quais propriedades estão disponíveis para compra?",
+        "a": "Existem diferentes alternativas de terrenos, casas e outras propriedades, e a disponibilidade muda constantemente. Para receber as opções e os preços atuais, o ideal é falar diretamente com um consultor."
       },
       {
-        "q": "Qual é a área mínima dos lotes?",
-        "a": "Os lotes começam em 800 m². Também há frações maiores às margens do rio e ao longo do campo de golfe, cotadas individualmente."
+        "q": "Quanto custa uma propriedade no AguaVista?",
+        "a": "Depende da localização, área e tipo de propriedade. Temos alternativas para diversos orçamentos. Gostaria que um consultor enviasse as opções disponíveis hoje?"
       },
       {
-        "q": "Qual é a distância até Assunção?",
-        "a": "Cerca de 40 minutos de carro por rodovia asfaltada, ou 12 minutos de voo até a pista privada do condomínio."
+        "q": "Um estrangeiro pode comprar?",
+        "a": "Sim, existem operações com compradores estrangeiros, embora os requisitos possam variar conforme a nacionalidade e a propriedade. Um consultor pode analisar seu caso e explicar o processo."
       },
       {
-        "q": "Posso construir quando quiser?",
-        "a": "Sim. Não há prazo obrigatório de construção. Existe um código de edificação que garante que todas as obras respeitem a estética e a densidade do masterplan."
+        "q": "Preciso de residência paraguaia para comprar?",
+        "a": "Não necessariamente. A situação depende de cada comprador e do imóvel. Se me informar sua nacionalidade, posso encaminhá-lo a um consultor para orientá-lo corretamente."
+      },
+      {
+        "q": "É possível financiar a compra?",
+        "a": "Algumas propriedades podem oferecer diferentes condições de pagamento ou financiamento. Para conhecer as alternativas vigentes, fale com um consultor."
+      },
+      {
+        "q": "Quanto se paga de taxa de condomínio (expensas)?",
+        "a": "O valor pode depender da propriedade e das condições vigentes do clube. Um consultor pode fornecer o valor atualizado e explicar o que está incluído."
+      },
+      {
+        "q": "O AguaVista tem campo de golfe?",
+        "a": "Sim. O golfe é um dos grandes diferenciais do AguaVista, junto com a praia, a marina e as instalações esportivas. Se quiser conhecer propriedades próximas ou com vista para o golfe, posso conectá-lo a um consultor."
+      },
+      {
+        "q": "O AguaVista tem aeroporto próprio?",
+        "a": "Sim. O AguaVista conta com o AVA – AguaVista Airport Executive. Para informações sobre a operação de voos ou para agendar uma visita, fale diretamente com um consultor."
+      },
+      {
+        "q": "Tem praia e acesso ao rio?",
+        "a": "Sim. O AguaVista oferece um estilo de vida ligado ao Rio Paraná, com praia e atividades náuticas. Se quiser conhecer o condomínio pessoalmente, podemos agendar uma visita."
+      },
+      {
+        "q": "Posso alugar minha propriedade?",
+        "a": "Existem propriedades dentro do AguaVista destinadas a aluguel por temporada. As condições dependem do imóvel e do regulamento vigente. Um consultor pode explicar quais propriedades são mais adequadas para investimento."
+      },
+      {
+        "q": "Qual rentabilidade uma propriedade pode gerar?",
+        "a": "A rentabilidade depende do preço de compra, tipo de imóvel, diária, ocupação e despesas. Para fazer cálculos reais sobre uma propriedade específica, fale com um consultor."
+      },
+      {
+        "q": "Posso visitar o AguaVista antes de comprar?",
+        "a": "Sim. Podemos agendar uma visita para que você conheça o clube, seus amenities e as propriedades disponíveis. Me diga qual dia gostaria de vir e coloco você em contato com um consultor."
+      },
+      {
+        "q": "Quero comprar ou investir, com quem eu falo?",
+        "a": "Com um consultor da Solari Bienes Raíces."
       }
     ]
   },
@@ -240,7 +276,7 @@
     "sections": [
       {
         "title": "1. Responsável pelo tratamento",
-        "body": "AguaVista S.A., com endereço na San Juan del Paraná, Itapúa, Paraguai, é a responsável pelo tratamento dos dados pessoais coletados neste site. Você pode nos contatar em info@aguavista.com.py para qualquer dúvida sobre esta política."
+        "body": "AguaVista S.A., com endereço na Antequera esquina 25 de mayo, local 1., Encarnación, Paraguai, é a responsável pelo tratamento dos dados pessoais coletados neste site. Você pode nos contatar em info@aguavista.com.py para qualquer dúvida sobre esta política."
       },
       {
         "title": "2. Quais dados coletamos",
@@ -286,7 +322,7 @@
     "intro": "Estes termos regulam o uso do site do AguaVista. Ao navegar nele ou nos enviar uma consulta, você aceita as condições a seguir. Pedimos que as leia com atenção.",
     "sections": [
       {
-        "title": "1. Titularidade do site",
+        "title": "Este site é operado pela AguaVista S.A., com endereço na Antequera esquina 25 de mayo, local 1., Encarnación, Paraguai",
         "body": "Este site é operado pela AguaVista S.A., com endereço na San Juan del Paraná, Itapúa, Paraguai. Qualquer dúvida sobre estes termos pode ser enviada para info@aguavista.com.py."
       },
       {
@@ -345,7 +381,7 @@
   "metadata": {
     "title": "AguaVista | Condomínio privado no Rio Paraná",
     "titleTemplate": "%s | AguaVista",
-    "description": "Condomínio privado de 1.200 hectares às margens do Rio Paraná. Golfe profissional, náutica, aeroporto executivo e lotes a partir de 800 m² com financiamento em 84 parcelas.",
+    "description": "Condomínio privado de 1.200 hectares às margens do Rio Paraná. Golfe profissional, náutica, aeroporto executivo e lotes a partir de 800 m² com financiamento em 72 parcelas.",
     "privacyTitle": "Política de privacidade",
     "privacyDescription": "Como o AguaVista coleta, usa e protege seus dados pessoais.",
     "termsTitle": "Termos e condições",

@@ -11,6 +11,7 @@ import { EASE_LUX } from '@/components/motion/Reveal';
 interface ImgData {
     src: string;
     alt?: string;
+    isCenter?: boolean;
 }
 
 interface ZoomParallaxProps {
@@ -37,60 +38,62 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
     const revealed = useInView(galleryContainer, { once: true, amount: 0.2 });
 
     /* 
-     * ── ANIMACIONES DE EXPANSIÓN Y ZOOM ──
-     * Las fotos crecen y se separan violentamente hacia los extremos 
-     * liberando todo el lienzo central.
+     * ── ANIMACIONES GENERALES ──
+     * Todas escalan juntas. Las periféricas vuelan hacia afuera.
      */
-    const globalScale = useTransform(galleryScroll, [0, 0.75], [1, 3.8]);
+    const globalScale = useTransform(galleryScroll, [0, 0.75], [1, 4]);
     
-    const spreadX_FarLeft = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '-45vw']);
-    const spreadX_Left = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '-25vw']);
-    const spreadX_Right = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '25vw']);
-    const spreadX_FarRight = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '45vw']);
-    
+    const spreadX_Left = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '-45vw']);
+    const spreadX_Right = useTransform(galleryScroll, [0.15, 0.65], ['0vw', '45vw']);
     const spreadY_Top = useTransform(galleryScroll, [0.15, 0.65], ['0vh', '-45vh']);
     const spreadY_Bottom = useTransform(galleryScroll, [0.15, 0.65], ['0vh', '45vh']);
 
     /* 
-     * ── ANIMACIÓN DEL TEXTO ──
-     * Aparece en el hueco perfecto que dejan las fotos al volar.
+     * ── ANIMACIONES DE LA IMAGEN CENTRAL ──
+     * La capa negra arranca en 0 y sube hasta 60% (0.6) de opacidad.
+     * El texto arranca invisible y aparece a medida que se oscurece el fondo.
      */
-    const textOpacity = useTransform(galleryScroll, [0.45, 0.65], [0, 1]);
-    const textScale = useTransform(galleryScroll, [0.45, 0.65], [0.9, 1]);
+    const centerDarkness = useTransform(galleryScroll, [0.25, 0.65], [0, 0.6]);
+    const textOpacity = useTransform(galleryScroll, [0.4, 0.65], [0, 1]);
+    const textScale = useTransform(galleryScroll, [0.4, 0.65], [0.95, 1]);
 
     /* 
-     * ── EFECTO PUZZLE (MASONRY LAYOUT) ──
-     * Matemática estricta: Mezcla de formatos verticales y horizontales 
-     * con una separación perfecta de 2vw/2vh entre bordes.
+     * ── LÓGICA DE POSICIONAMIENTO ──
+     * El centro queda en 0,0. Las demás orbitan en un marco perfecto.
      */
-    const getInitialClasses = (index: number) => {
-        switch (index) {
-            // 1. Izquierda: Rectángulo vertical alto
-            case 0: return '[&>div]:!-top-[11vh] [&>div]:!-left-[20vw] [&>div]:!h-[20vh] [&>div]:!w-[38vw] md:[&>div]:!top-[0vh] md:[&>div]:!-left-[19vw] md:[&>div]:!h-[36vh] md:[&>div]:!w-[16vw]'; 
-            // 2. Centro Arriba: Cuadrado/Rectángulo apaisado
-            case 1: return '[&>div]:!-top-[6vh] [&>div]:!left-[20vw] [&>div]:!h-[30vh] [&>div]:!w-[38vw] md:[&>div]:!-top-[10vh] md:[&>div]:!left-[0vw] md:[&>div]:!h-[20vh] md:[&>div]:!w-[18vw]'; 
-            // 3. Centro Abajo: Rectángulo muy horizontal
-            case 2: return '[&>div]:!top-[11vh] [&>div]:!-left-[20vw] [&>div]:!h-[20vh] [&>div]:!w-[38vw] md:[&>div]:!top-[10vh] md:[&>div]:!left-[0vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[18vw]'; 
-            // 4. Derecha Arriba: Cuadrado chico
-            case 3: return '[&>div]:!top-[18vh] [&>div]:!left-[20vw] [&>div]:!h-[14vh] [&>div]:!w-[38vw] md:[&>div]:!-top-[12vh] md:[&>div]:!left-[19vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[16vw]'; 
-            // 5. Derecha Abajo: Rectángulo vertical
-            case 4: return 'hidden md:flex md:[&>div]:!top-[7vh] md:[&>div]:!left-[19vw] md:[&>div]:!h-[18vh] md:[&>div]:!w-[16vw]'; 
+    const getInitialClasses = (isCenter?: boolean, orbitIndex: number = 0) => {
+        if (isCenter) {
+            // El collage horizontal en el centro exacto
+            return 'z-20 [&>div]:!top-0 [&>div]:!left-0 [&>div]:!h-[22vh] [&>div]:!w-[80vw] md:[&>div]:!h-[32vh] md:[&>div]:!w-[42vw]';
+        }
+        switch (orbitIndex) {
+            // Arriba Izquierda
+            case 0: return '[&>div]:!-top-[18vh] [&>div]:!-left-[20vw] [&>div]:!h-[12vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[24vh] md:[&>div]:!-left-[26vw] md:[&>div]:!h-[20vh] md:[&>div]:!w-[20vw]'; 
+            // Arriba Derecha
+            case 1: return '[&>div]:!-top-[20vh] [&>div]:!left-[22vw] [&>div]:!h-[14vh] [&>div]:!w-[35vw] md:[&>div]:!-top-[22vh] md:[&>div]:!left-[26vw] md:[&>div]:!h-[16vh] md:[&>div]:!w-[22vw]'; 
+            // Abajo Izquierda
+            case 2: return '[&>div]:!top-[18vh] [&>div]:!-left-[20vw] [&>div]:!h-[12vh] [&>div]:!w-[35vw] md:[&>div]:!top-[24vh] md:[&>div]:!-left-[24vw] md:[&>div]:!h-[22vh] md:[&>div]:!w-[18vw]'; 
+            // Abajo Derecha
+            case 3: return '[&>div]:!top-[20vh] [&>div]:!left-[22vw] [&>div]:!h-[14vh] [&>div]:!w-[35vw] md:[&>div]:!top-[22vh] md:[&>div]:!left-[26vw] md:[&>div]:!h-[18vh] md:[&>div]:!w-[22vw]'; 
+            // Extremo Izquierdo (Cierra el marco en PC)
+            case 4: return 'hidden md:flex md:[&>div]:!top-[0vh] md:[&>div]:!-left-[42vw] md:[&>div]:!h-[26vh] md:[&>div]:!w-[12vw]'; 
             default: return '';
         }
     };
 
-    // Asignamos trayectorias únicas para que no choquen al expandirse
-    const getTransforms = (index: number) => {
+    const getTransforms = (orbitIndex: number) => {
         if (reduceMotion) return { scale: 1, x: '0vw', y: '0vh' };
-        switch (index) {
-            case 0: return { scale: globalScale, x: spreadX_FarLeft, y: spreadY_Top };
-            case 1: return { scale: globalScale, x: spreadX_Left, y: spreadY_Top };
+        switch (orbitIndex) {
+            case 0: return { scale: globalScale, x: spreadX_Left, y: spreadY_Top };
+            case 1: return { scale: globalScale, x: spreadX_Right, y: spreadY_Top };
             case 2: return { scale: globalScale, x: spreadX_Left, y: spreadY_Bottom };
-            case 3: return { scale: globalScale, x: spreadX_FarRight, y: spreadY_Top };
-            case 4: return { scale: globalScale, x: spreadX_FarRight, y: spreadY_Bottom };
+            case 3: return { scale: globalScale, x: spreadX_Right, y: spreadY_Bottom };
+            case 4: return { scale: globalScale, x: spreadX_Left, y: '0vh' }; // Vuela a la izquierda
             default: return { scale: 1, x: '0vw', y: '0vh' };
         }
     };
+
+    let orbitCounter = 0; // Para iterar las periféricas independientemente de la posición del centro
 
     return (
         <section ref={mainContainer} className="relative w-full bg-[color:var(--av-base)]">
@@ -106,15 +109,6 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
             </div>
 
             <div className="relative z-10 min-h-screen w-full flex flex-col items-center justify-center px-6 text-center md:px-10">
-                <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute inset-0"
-                    style={{
-                        background:
-                            'radial-gradient(50% 40% at 50% 50%, color-mix(in oklab, var(--av-base) 80%, transparent) 0%, transparent 70%)',
-                    }}
-                />
-
                 <SlideUp
                     className="relative"
                     innerClassName="font-[family-name:var(--font-josefin)] text-[10px] md:text-xs font-light tracking-[0.3em] text-[color:var(--av-lux)] uppercase mb-8"
@@ -124,7 +118,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
 
                 <SplitText
                     as="h2"
-                    text="No se trata solo de todo lo que AguaVista tiene, sino de todo lo que te permite vivir"
+                    text="No se trata de tenerlo todo. Se trata de vivir donde todo es posible."
                     delay={0.15}
                     className="relative font-[family-name:var(--font-cormorant)] text-[clamp(2.2rem,6vw,4.5rem)] text-[color:var(--av-text)] font-light max-w-[95%] md:max-w-4xl text-balance leading-tight mx-auto"
                 />
@@ -133,31 +127,31 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
             <div ref={galleryContainer} className="relative h-[250vh] z-10">
                 <div className="sticky top-0 h-screen overflow-hidden">
 
-                    {/* ── TEXTO CENTRAL QUE APARECE CON EL SCROLL ── */}
+                    {/* ── TEXTO CENTRAL SOBRE EL COLLAGE ── */}
                     <motion.div
                         style={{ opacity: reduceMotion ? 1 : textOpacity, scale: reduceMotion ? 1 : textScale }}
-                        className="pointer-events-none absolute inset-0 z-20 flex flex-col items-center justify-center px-4 text-center md:px-10"
+                        className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center px-4 text-center md:px-10"
                     >
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_95%,transparent)_0%,transparent_70%)] md:bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--av-base)_80%,transparent)_0%,transparent_50%)] opacity-100" />
-                        
                         <div className="relative z-10 flex flex-col items-center justify-center w-full">
-                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4 md:mb-6">
-                                Hay mucho más por descubrir
+                            <span className="font-[family-name:var(--font-josefin)] text-[10px] md:text-sm tracking-[0.25em] md:tracking-[0.4em] text-[color:var(--av-lux)] uppercase mb-4 md:mb-6 drop-shadow-lg">
+                                Una experiencia integral
                             </span>
 
-                            <h3 className="w-full max-w-[95%] md:max-w-4xl text-balance font-[family-name:var(--font-cormorant)] text-[clamp(1.75rem,7vw,4.5rem)] text-[color:var(--av-text)] font-light leading-[1.1] md:leading-[1.15] drop-shadow-[0_4px_24px_rgba(10,26,20,0.95)] mx-auto">
-                                Explorá cada espacio y empezá<br className="hidden md:block"/> a imaginar tu vida en AguaVista
+                            <h3 className="w-full max-w-[95%] md:max-w-4xl text-balance font-[family-name:var(--font-cormorant)] text-[clamp(1.75rem,6.5vw,4rem)] text-white font-light leading-[1.1] md:leading-[1.15] drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)] mx-auto">
+                                Todo lo que buscabas por separado,<br className="hidden md:block"/> acá sucede en un mismo lugar.
                             </h3>
                         </div>
                     </motion.div>
 
                     {/* ── IMÁGENES ── */}
-                    {images.map(({ src, alt }, index) => {
+                    {images.map(({ src, alt, isCenter }, index) => {
+                        const currentOrbit = isCenter ? -1 : orbitCounter++;
+
                         return (
                             <motion.div
                                 key={index}
-                                style={getTransforms(index)}
-                                className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${getInitialClasses(index)}`}
+                                style={isCenter ? { scale: globalScale } : getTransforms(currentOrbit)}
+                                className={`absolute top-0 flex h-full w-full items-center justify-center will-change-transform ${getInitialClasses(isCenter, currentOrbit)}`}
                             >
                                 <div className="relative">
                                     <motion.div
@@ -182,8 +176,16 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                                             alt={alt || `Parallax image ${index + 1}`}
                                             fill
                                             className="object-cover"
-                                            sizes="(max-width: 768px) 50vw, 35vw"
+                                            sizes={isCenter ? "100vw" : "(max-width: 768px) 50vw, 35vw"}
                                         />
+                                        
+                                        {/* ── CAPA DE OSCURECIMIENTO (SOLO CENTRO) ── */}
+                                        {isCenter && (
+                                            <motion.div 
+                                                style={{ opacity: centerDarkness }}
+                                                className="absolute inset-0 bg-black z-10"
+                                            />
+                                        )}
                                     </motion.div>
                                 </div>
                             </motion.div>

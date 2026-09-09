@@ -13,7 +13,7 @@ export const siteConfig = {
   legalName: "AguaVista S.A.",
   tagline: "Condominio privado a orillas del Río Paraná",
   description:
-    "Condominio privado de 1.200 hectáreas sobre el Río Paraná. Golf profesional, náutica, aeropuerto ejecutivo y lotes desde 800 m² con financiación a 84 cuotas.",
+    "Condominio privado de 1.200 hectáreas sobre el Río Paraná. Golf profesional, náutica, aeropuerto ejecutivo y lotes desde 800 m² con financiación a 72 cuotas.",
 
   /* Sin barra final: se concatena con las rutas. Configurable por entorno
      para que los OG y el sitemap apunten bien en preview y en producción. */
@@ -25,11 +25,11 @@ export const siteConfig = {
 
   contact: {
     /** Formato visible en pantalla. */
-    phone: "+595 982 190 911",
+    phone: "+595 984 488000",
     /** Para el enlace tel:. Solo + y dígitos. */
-    phoneRaw: "+595982190911",
+    phoneRaw: "+595984488000",
     /** Para wa.me/. Solo dígitos, sin + ni espacios. */
-    whatsapp: "595982190911",
+    whatsapp: "595984488000",
     email: "comercial@aguavista.com.py",
     /**
      * Dirección de una línea, tal como la devuelve Google Maps. Es la que
@@ -37,7 +37,7 @@ export const siteConfig = {
      * los documentos legales. Para el JSON-LD se usa `addressParts`, que
      * es la misma dirección desglosada.
      */
-    address: "6080, San Juan del Paraná 006080, Paraguay",
+    address: "Antequera esquina 25 de mayo, local 1., Encarnación, Paraguay",
   },
 
   /**
@@ -47,10 +47,10 @@ export const siteConfig = {
    * el departamento correcto sin geocodificar el texto.
    */
   addressParts: {
-    streetAddress: "6080",
-    addressLocality: "San Juan del Paraná",
+    streetAddress: "Antequera esquina 25 de mayo, local 1.",
+    addressLocality: "Encarnación",
     addressRegion: "Itapúa",
-    postalCode: "006080",
+    postalCode: "6000",
     addressCountry: "PY",
   },
 
@@ -59,18 +59,13 @@ export const siteConfig = {
   social: [
     {
       name: "Instagram",
-      href: "https://www.instagram.com/aguavistapy/",
+      href: "https://www.instagram.com/solariparaguay/",
       icon: "instagram",
     },
     {
       name: "Facebook",
       href: "https://www.facebook.com/aguavista/?locale=es_LA",
       icon: "facebook",
-    },
-    {
-      name: "LinkedIn",
-      href: "https://www.linkedin.com/company/aguavista",
-      icon: "linkedin",
     },
   ] as const,
 

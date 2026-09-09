@@ -117,7 +117,7 @@ export default function VerticalReels({
                       flex flex-col justify-start md:justify-center md:pr-10
                       order-1 pointer-events-none"
         >
-          {/* Wrapper de parallax — solo activo en desktop */}
+        {/* Wrapper de parallax — solo activo en desktop */}
           <motion.div
             style={{ y: textY }}
             className="hidden md:flex flex-col"
@@ -128,7 +128,7 @@ export default function VerticalReels({
               viewport={{ once: true, margin: '-50px' }}
               className="text-[var(--av-lux)] uppercase tracking-[0.2em] text-sm mb-4 font-semibold drop-shadow-md"
             >
-              Lifestyle Exclusivo
+              EL NUEVO LUJO
             </motion.h2>
 
             <motion.h3
@@ -138,7 +138,7 @@ export default function VerticalReels({
               transition={{ delay: 0.1 }}
               className="text-4xl lg:text-6xl text-white font-serif leading-tight drop-shadow-2xl"
             >
-              ¿Te imaginas viviendo acá?
+              Tener tiempo. Tener espacio.<br/>Tener libertad para elegir<br/>cómo vivir cada día.
             </motion.h3>
 
             <motion.p
@@ -148,7 +148,7 @@ export default function VerticalReels({
               transition={{ delay: 0.2 }}
               className="text-white/60 mt-6 text-base lg:text-lg max-w-md font-light leading-relaxed"
             >
-              Descubrí cada detalle y sentí la experiencia de AguaVista. Un ecosistema diseñado para quienes exigen lo extraordinario.
+              Eso es AguaVista.
             </motion.p>
           </motion.div>
 
@@ -160,7 +160,7 @@ export default function VerticalReels({
               viewport={{ once: true, margin: '-50px' }}
               className="text-[var(--av-lux)] uppercase tracking-[0.2em] text-xs mb-3 font-semibold drop-shadow-md"
             >
-              Lifestyle Exclusivo
+              EL NUEVO LUJO
             </motion.h2>
 
             <motion.h3
@@ -170,7 +170,7 @@ export default function VerticalReels({
               transition={{ delay: 0.1 }}
               className="text-3xl text-white font-serif leading-tight drop-shadow-2xl"
             >
-              ¿Te gustaría vivir en el paraíso?
+              Tener tiempo. Tener espacio.<br/>Tener libertad para elegir<br/>cómo vivir cada día.
             </motion.h3>
 
             <motion.p
@@ -180,7 +180,7 @@ export default function VerticalReels({
               transition={{ delay: 0.2 }}
               className="text-white/60 mt-4 text-sm max-w-md font-light leading-relaxed"
             >
-              No se trata solo de todo lo que AguaVista tiene, sino de todo lo que te permite vivi
+              Eso es AguaVista.
             </motion.p>
           </div>
         </div>

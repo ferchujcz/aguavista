@@ -28,22 +28,22 @@
     "cta": "Consultar"
   },
   "hero": {
-    "kicker": "Descubrí AguaVista",
-    "title": "Tierra, río y aire conectados en un mismo lugar.",
-    "titleAccent": "Golf profesional, náutica privada y pista de aterrizaje.",
+    "kicker": "UNA CATEGORÍA PROPIA",
+    "title": "",
+    "titleAccent": "Hay lugares para vivir. Y lugares que definen cómo querés vivir.",
     "subtitle": "",
     "videoAlt": "Vista aérea del condominio AguaVista sobre el Río Paraná"
   },
   "stats": {
     "kicker": "Lotes disponibles",
-    "title": "Invertí en calidad de vida",
-    "titleAccent": "para vos y tu familia",
+    "title": "TU PRÓXIMA DECISIÓN PUEDE CAMBIAR TU FORMA DE VIVIR.",
+    "titleAccent": "Invertí en AguaVista.",
     "surface": {
       "value": "800 m²",
       "label": "Superficie mínima"
     },
     "installments": {
-      "value": "84",
+      "value": "72",
       "label": "Cuotas sin interés"
     },
     "downpayment": {
@@ -57,9 +57,9 @@
     "cta": "Ver lotes disponibles"
   },
   "amenities": {
-    "kicker": "Amenities",
-    "title": "Todo lo que hace único a AguaVista",
-    "subtitle": "Un condominio pensado para que no tengas que salir para vivir bien.",
+    "kicker": "UN ESTILO DE VIDA EXCEPCIONAL",
+    "title": "Lo extraordinario<br/>forma parte de lo cotidiano.",
+    "subtitle": "Golf, náutica, aviación, naturaleza y río.<br/>Todo dentro de AguaVista.",
     "items": {
       "golf": {
         "title": "Golf",
@@ -197,28 +197,64 @@
     "title": "Preguntas frecuentes",
     "items": [
       {
-        "q": "¿Cuáles son las opciones de financiación disponibles?",
-        "a": "Financiamos hasta 84 cuotas en dólares sin interés, con una entrega inicial desde el 5% del valor del lote. También aceptamos permutas y planes a medida para inversores."
+        "q": "¿Qué es AguaVista?",
+        "a": "AguaVista es un club de campo residencial en Paraguay que combina propiedades, golf, playa, náutica, deportes y aeropuerto ejecutivo. Si querés conocer las opciones disponibles, puedo ponerte en contacto con una asesora."
       },
       {
-        "q": "¿El predio cuenta con seguridad las 24 horas?",
-        "a": "Sí. AguaVista tiene triple anillo de seguridad, control de acceso biométrico, vigilancia perimetral con cámaras térmicas y personal de guardia las 24 horas, todos los días del año."
+        "q": "¿Dónde está ubicado AguaVista?",
+        "a": "Está en San Juan del Paraná, muy cerca de Encarnación y de la frontera con Argentina. Si me decís desde dónde venís, una asesora puede explicarte la mejor forma de llegar."
       },
       {
-        "q": "¿Qué incluye la membresía de propietario?",
-        "a": "Todos los propietarios acceden a la cancha de golf, la House del Tenis, el Spa & Bienestar, la playa privada, la marina y el aeropuerto ejecutivo, sin costo adicional por uso."
+        "q": "¿Qué propiedades hay disponibles para comprar?",
+        "a": "Hay diferentes alternativas de terrenos, casas y otras propiedades, y la disponibilidad cambia constantemente. Para recibir las opciones actuales y precios, lo mejor es hablar directamente con una asesora."
       },
       {
-        "q": "¿Cuál es la superficie mínima de los lotes?",
-        "a": "Los lotes arrancan en 800 m². También hay fracciones más grandes sobre el río y sobre la cancha de golf, que se cotizan de forma individual."
+        "q": "¿Cuánto cuesta una propiedad en AguaVista?",
+        "a": "Depende de la ubicación, superficie y tipo de propiedad. Tenemos alternativas para distintos presupuestos. ¿Querés que una asesora te envíe las opciones disponibles hoy?"
       },
       {
-        "q": "¿A qué distancia está de Asunción?",
-        "a": "Aproximadamente 40 minutos en auto por ruta asfaltada, o 12 minutos de vuelo hasta la pista privada del condominio."
+        "q": "¿Puede comprar un extranjero?",
+        "a": "Sí existen operaciones con compradores extranjeros, aunque los requisitos pueden variar según nacionalidad y propiedad. Una asesora puede revisar tu caso y explicarte el proceso."
       },
       {
-        "q": "¿Puedo construir cuando quiera?",
-        "a": "Sí. No hay plazo obligatorio de construcción. Sí existe un código de edificación que asegura que todas las obras respeten la estética y la densidad del masterplan."
+        "q": "¿Necesito residencia paraguaya para comprar?",
+        "a": "No necesariamente. La situación depende de cada comprador y del inmueble. Si me indicás tu nacionalidad, puedo derivarte con una asesora para orientarte correctamente."
+      },
+      {
+        "q": "¿Se puede financiar la compra?",
+        "a": "Algunas propiedades pueden ofrecer diferentes condiciones de pago o financiación. Para conocer las alternativas vigentes, hablá con una asesora."
+      },
+      {
+        "q": "¿Cuánto se paga de expensas?",
+        "a": "El valor puede depender de la propiedad y de las condiciones vigentes del club. Una asesora puede darte el importe actualizado y explicarte qué incluye."
+      },
+      {
+        "q": "¿AguaVista tiene campo de golf?",
+        "a": "Sí. El golf es uno de los grandes diferenciales de AguaVista, junto con la playa, la náutica y sus instalaciones deportivas. Si querés conocer propiedades cercanas o con vista al golf, puedo conectarte con una asesora."
+      },
+      {
+        "q": "¿AguaVista tiene aeropuerto propio?",
+        "a": "Sí. AguaVista cuenta con AVA – AguaVista Airport Executive. Para información sobre la operación de vuelos o para coordinar una visita, hablá directamente con una asesora."
+      },
+      {
+        "q": "¿Tiene playa y acceso al río?",
+        "a": "Sí. AguaVista ofrece un estilo de vida vinculado al río Paraná, con playa y actividades náuticas. Si querés conocer personalmente el club, podemos coordinar una visita."
+      },
+      {
+        "q": "¿Puedo alquilar mi propiedad?",
+        "a": "Existen propiedades dentro de AguaVista destinadas a alquiler temporario. Las condiciones dependen del inmueble y del reglamento vigente. Una asesora puede explicarte qué propiedades son más adecuadas para inversión."
+      },
+      {
+        "q": "¿Qué rentabilidad puede generar una propiedad?",
+        "a": "La rentabilidad depende del precio de compra, tipo de propiedad, tarifa, ocupación y gastos. Para hacer números reales sobre una propiedad concreta, hablá con una asesora."
+      },
+      {
+        "q": "¿Puedo visitar AguaVista antes de comprar?",
+        "a": "Sí. Podemos coordinar una visita para que conozcas el club, sus amenities y las propiedades disponibles. Decime qué día te gustaría venir y te contacto con una asesora."
+      },
+      {
+        "q": "¿Quiero comprar o invertir, con quién hablo?",
+        "a": "Con una asesora de Solari Bienes Raíces."
       }
     ]
   },
