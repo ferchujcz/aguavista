@@ -29,7 +29,7 @@ export function WhatsAppButton() {
           href={`https://wa.me/${siteConfig.contact.whatsapp}`}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={t("consultas")}
+          aria-label="Consultar"
           initial={{ opacity: 0, scale: 0.7, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.7, y: 20 }}
