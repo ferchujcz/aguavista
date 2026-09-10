@@ -1,4 +1,5 @@
-'use client';
+
+}'use client';
 
 import {
     useScroll,
@@ -251,12 +252,18 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
                     Una categoría propia
                 </SlideUp>
 
-                <SplitText
-                    as="h2"
-                    text="Hay lugares para vivir. Y lugares que definen cómo querés vivir."
-                    delay={0.15}
-                    className="relative mx-auto max-w-[95%] text-balance font-[family-name:var(--font-cormorant)] text-[clamp(2.2rem,6vw,4.5rem)] font-light leading-tight text-[color:var(--av-text)] md:max-w-4xl"
-                />
+                <div className="relative mx-auto flex max-w-[95%] flex-col items-center md:max-w-4xl">
+                    <SplitText
+                        as="h2"
+                        text="No se trata de tenerlo todo."
+                        delay={0.15}
+                        className="relative text-balance font-[family-name:var(--font-cormorant)] text-[clamp(2.2rem,6vw,4.5rem)] font-light leading-tight text-[color:var(--av-text)]"
+                    />
+
+                    <p className="mt-4 font-[family-name:var(--font-josefin)] text-[0.7rem] font-light uppercase tracking-[0.2em] text-[color:var(--av-text)]/80 md:text-xs">
+                        Se trata de vivir donde todo es posible.
+                    </p>
+                </div>
             </div>
 
             {/* 

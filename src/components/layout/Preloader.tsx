@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { EASE_LUX } from "@/components/motion/Reveal";
 
 /** Solo se muestra una vez por pestaña; navegar de vuelta no lo repite. */
@@ -94,7 +95,7 @@ export function Preloader() {
           role="status"
           aria-live="polite"
           aria-label={tc("loading")}
-          className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-base av-noise"
+          className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[color:var(--av-base)]"
           initial={{ opacity: 1 }}
           // La cortina sube revelando la página, en vez de un fade plano.
           exit={{ y: "-100%", transition: { duration: 1.05, ease: EASE_LUX } }}
@@ -105,69 +106,34 @@ export function Preloader() {
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(50% 40% at 50% 45%, var(--av-glow-vivo) 0%, transparent 70%)",
+                "radial-gradient(50% 40% at 50% 45%, color-mix(in oklab, var(--av-base) 90%, transparent) 0%, transparent 70%)",
             }}
           />
 
           <div className="relative flex flex-col items-center gap-8 px-6 text-center">
-            {/* Monograma: se dibuja el trazo antes de aparecer el texto. */}
-            <motion.svg
-              width="76"
-              height="76"
-              viewBox="0 0 100 100"
-              fill="none"
-              aria-hidden="true"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, ease: EASE_LUX }}
+            
+            {/* ── LOGO OFICIAL ── */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, filter: "blur(4px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              transition={{ duration: 1.2, ease: EASE_LUX }}
+              className="relative h-28 w-56 md:h-36 md:w-72"
             >
-              <motion.circle
-                cx="50"
-                cy="50"
-                r="44"
-                stroke="var(--av-lux)"
-                strokeWidth="1"
-                strokeLinecap="round"
-                initial={{ pathLength: 0, opacity: 0.5 }}
-                animate={{ pathLength: 1, opacity: 1 }}
-                transition={{ duration: 1.6, ease: EASE_LUX }}
+              <Image
+                src="/logo-solari.png"
+                alt="AguaVista Logo"
+                fill
+                className="object-contain"
+                priority
               />
-              {/* Onda de agua — el gesto de la marca. */}
-              <motion.path
-                d="M26 58c8-9 16-9 24 0s16 9 24 0"
-                stroke="var(--av-vivo)"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1.2, delay: 0.35, ease: EASE_LUX }}
-              />
-              <motion.path
-                d="M32 42l18-14 18 14"
-                stroke="var(--av-lux-light)"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1, delay: 0.6, ease: EASE_LUX }}
-              />
-            </motion.svg>
+            </motion.div>
 
-            <motion.span
-              className="font-display text-3xl font-light uppercase tracking-[0.42em] text-ink md:text-4xl"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.9, delay: 0.5, ease: EASE_LUX }}
-            >
-              AguaVista
-            </motion.span>
-
+            {/* ── TEXTOS Y BARRA DE PROGRESO ── */}
             <motion.p
-              className="max-w-xs font-sans text-[10px] font-light uppercase leading-relaxed tracking-[0.3em] text-ink-muted"
+              className="max-w-xs font-[family-name:var(--font-josefin)] text-[10px] md:text-xs font-light uppercase leading-relaxed tracking-[0.3em] text-[color:var(--av-lux)]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.9, delay: 0.85 }}
+              transition={{ duration: 0.9, delay: 0.5 }}
             >
               {t("line1")}
               <br />
@@ -175,9 +141,9 @@ export function Preloader() {
             </motion.p>
 
             {/* Barra de progreso */}
-            <div className="mt-2 h-px w-40 overflow-hidden bg-[color:var(--av-border)] md:w-56">
+            <div className="mt-2 h-px w-40 overflow-hidden bg-white/10 md:w-56">
               <motion.div
-                className="h-full origin-left bg-[color:var(--av-vivo)]"
+                className="h-full origin-left bg-[color:var(--av-lux)]"
                 style={{ scaleX: progress }}
                 aria-hidden="true"
               />
