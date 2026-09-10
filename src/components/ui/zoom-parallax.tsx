@@ -124,7 +124,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
         {
             // GOLF — arriba izquierda
             className:
-                'left-[7%] top-[8%] w-[25vw] max-w-[360px] aspect-[16/10] md:left-[25%] md:top-[7%] md:w-[17vw]',
+                'left-[11%] top-[10%] w-[36vw] h-[15vh] max-w-[160px] md:left-[25%] md:top-[7%] md:w-[17vw] md:h-[20vh]',
             exitX: '-48vw',
             exitY: '-38vh',
             exitRotate: -8,
@@ -132,7 +132,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
         {
             // NÁUTICA — arriba derecha
             className:
-                'right-[7%] top-[11%] w-[28vw] max-w-[390px] aspect-[16/9] md:right-[22%] md:top-[13%] md:w-[19vw]',
+                'right-[11%] top-[14%] w-[36vw] h-[14vh] max-w-[165px] md:right-[22%] md:top-[13%] md:w-[19vw] md:h-[16vh]',
             exitX: '48vw',
             exitY: '-38vh',
             exitRotate: 8,
@@ -140,7 +140,7 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
         {
             // PLAYA — abajo izquierda
             className:
-                'left-[7%] bottom-[10%] w-[29vw] max-w-[400px] aspect-[16/10] md:left-[24%] md:bottom-[8%] md:w-[18vw]',
+                'left-[11%] bottom-[13%] w-[36vw] h-[15vh] max-w-[165px] md:left-[24%] md:bottom-[8%] md:w-[18vw] md:h-[20vh]',
             exitX: '-48vw',
             exitY: '40vh',
             exitRotate: -7,
@@ -148,15 +148,15 @@ export function ZoomParallax({ images }: ZoomParallaxProps) {
         {
             // SPA — abajo derecha
             className:
-                'right-[7%] bottom-[12%] w-[28vw] max-w-[390px] aspect-[16/10] md:right-[22%] md:bottom-[10%] md:w-[18vw]',
+                'right-[11%] bottom-[15%] w-[36vw] h-[14vh] max-w-[165px] md:right-[22%] md:bottom-[10%] md:w-[18vw] md:h-[16vh]',
             exitX: '48vw',
             exitY: '40vh',
             exitRotate: 7,
         },
         {
-            // EVENTOS — lateral izquierdo
+            // EVENTOS — solo desktop
             className:
-                'hidden md:block left-[5%] top-1/2 -translate-y-1/2 w-[14vw] max-w-[260px] aspect-[4/3]',
+                'hidden md:block md:left-[5%] md:top-1/2 md:-translate-y-1/2 md:w-[14vw] md:max-w-[260px] md:aspect-[4/3]',
             exitX: '-55vw',
             exitY: '0vh',
             exitRotate: -10,
